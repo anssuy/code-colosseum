@@ -35,8 +35,8 @@ func main() {
 	queries := db.New(pool)
 
 	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		log.Fatal("JWT_SECRET is required")
+	if len(jwtSecret) < 32 {
+		log.Fatal("JWT_SECRET must be at least 32 characters")
 	}
 
 	tokenManager := auth.NewTokenManager(jwtSecret)
@@ -54,8 +54,17 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	router.POST("/api/auth/register", authHandler.Register)
-	router.POST("/api/auth/login", authHandler.Login)
+	authRoutes := router.Group("/api/auth")
+	{
+		authRoutes.POST("/register", authHandler.Register)
+		authRoutes.POST("/login", authHandler.Login)
+		authRoutes.POST("/refresh", authHandler.Refresh)
+		authRoutes.POST("/logout", authHandler.Logout)
 
-	router.Run(":8080")
+		authRoutes.GET("/me", auth.Middleware(tokenManager), authHandler.Me)
+	}
+
+	if err := router.Run(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }

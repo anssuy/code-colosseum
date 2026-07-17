@@ -5,12 +5,14 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	db "github.com/anssuy/code-colosseum/backend/internal/db/generated"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const uniqueViolationCode = "23505"
@@ -123,28 +125,161 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := h.tokens.GenerateAccessToken(user.ID.String())
+	accessToken, refreshToken, err := h.createSession(
+		c.Request.Context(),
+		user.ID,
+	)
 	if err != nil {
-		log.Printf("generate access token error: %v", err)
+		log.Printf("create login session error: %v", err)
 		writeError(c, http.StatusInternalServerError, "could not log in")
 		return
 	}
 
-	c.SetSameSite(http.SameSiteLaxMode)
-
-	c.SetCookie(
-		"access_token",
-		accessToken,
-		15*60,
-		"/",
-		"",
-		false,
-		true,
-	)
+	setAuthCookies(c, accessToken, refreshToken)
 
 	c.JSON(http.StatusOK, gin.H{
 		"user": userJSON(user),
 	})
+}
+
+func (h *Handler) Me(c *gin.Context) {
+	userIDString, exists := getAuthenticatedUserID(c)
+	if !exists {
+		writeError(
+			c,
+			http.StatusUnauthorized,
+			"authentication required",
+		)
+		return
+	}
+
+	var userID pgtype.UUID
+
+	if err := userID.Scan(userIDString); err != nil || !userID.Valid {
+		writeError(
+			c,
+			http.StatusUnauthorized,
+			"invalid access token",
+		)
+		return
+	}
+
+	user, err := h.queries.GetUserByID(
+		c.Request.Context(),
+		userID,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			writeError(
+				c,
+				http.StatusUnauthorized,
+				"user no longer exists",
+			)
+			return
+		}
+
+		log.Printf("get current user error: %v", err)
+		writeError(
+			c,
+			http.StatusInternalServerError,
+			"could not retrieve user",
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": userJSON(user),
+	})
+}
+
+func (h *Handler) Refresh(c *gin.Context) {
+	oldRefreshToken, err := c.Cookie(refreshTokenCookieName)
+	if err != nil {
+		writeError(
+			c,
+			http.StatusUnauthorized,
+			"refresh token is required",
+		)
+		return
+	}
+
+	newRefreshToken, err := GenerateRefreshToken()
+	if err != nil {
+		log.Printf("generate refresh token error: %v", err)
+		writeError(c, http.StatusInternalServerError, "could not refresh session")
+		return
+	}
+
+	userID, err := h.queries.RotateRefreshToken(
+		c.Request.Context(),
+		db.RotateRefreshTokenParams{
+			TokenHash:   HashRefreshToken(oldRefreshToken),
+			TokenHash_2: HashRefreshToken(newRefreshToken),
+			ExpiresAt: pgtype.Timestamptz{
+				Time:  time.Now().Add(refreshTokenTTL),
+				Valid: true,
+			},
+		},
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			clearAuthCookies(c)
+			writeError(
+				c,
+				http.StatusUnauthorized,
+				"invalid or expired refresh token",
+			)
+			return
+		}
+
+		log.Printf("rotate refresh token error: %v", err)
+		writeError(c, http.StatusInternalServerError, "could not refresh session")
+		return
+	}
+
+	accessToken, err := h.tokens.GenerateAccessToken(userID.String())
+	if err != nil {
+		log.Printf("generate access token error: %v", err)
+		writeError(c, http.StatusInternalServerError, "could not refresh session")
+		return
+	}
+
+	user, err := h.queries.GetUserByID(
+		c.Request.Context(),
+		userID,
+	)
+	if err != nil {
+		log.Printf("get refreshed user error: %v", err)
+		clearAuthCookies(c)
+		writeError(c, http.StatusUnauthorized, "user no longer exists")
+		return
+	}
+
+	setAuthCookies(c, accessToken, newRefreshToken)
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": userJSON(user),
+	})
+}
+
+func (h *Handler) Logout(c *gin.Context) {
+	refreshToken, err := c.Cookie(refreshTokenCookieName)
+
+	if err == nil {
+		tokenHash := HashRefreshToken(refreshToken)
+
+		if err := h.queries.DeleteRefreshTokenByHash(
+			c.Request.Context(),
+			tokenHash,
+		); err != nil {
+			log.Printf("delete refresh token error: %v", err)
+			writeError(c, http.StatusInternalServerError, "could not log out")
+			return
+		}
+	}
+
+	clearAuthCookies(c)
+	c.Status(http.StatusNoContent)
 }
 
 func handleCreateUserError(c *gin.Context, err error) {
