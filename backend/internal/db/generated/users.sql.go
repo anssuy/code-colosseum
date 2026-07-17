@@ -8,7 +8,7 @@ package db
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -32,7 +32,7 @@ type CreateUserParams struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Email, arg.PasswordHash)
+	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Email, arg.PasswordHash)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -52,8 +52,8 @@ DELETE FROM users
 WHERE id = $1
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteUser, id)
+func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUser, id)
 	return err
 }
 
@@ -65,7 +65,7 @@ LIMIT 1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -87,8 +87,8 @@ WHERE id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByID, id)
+func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByID, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -111,7 +111,7 @@ LIMIT 1
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -133,8 +133,8 @@ WHERE id = $1
 RETURNING id, username, email, password_hash, rating, wins, losses, created_at
 `
 
-func (q *Queries) IncrementUserLosses(ctx context.Context, id uuid.UUID) (User, error) {
-	row := q.db.QueryRowContext(ctx, incrementUserLosses, id)
+func (q *Queries) IncrementUserLosses(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, incrementUserLosses, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -156,8 +156,8 @@ WHERE id = $1
 RETURNING id, username, email, password_hash, rating, wins, losses, created_at
 `
 
-func (q *Queries) IncrementUserWins(ctx context.Context, id uuid.UUID) (User, error) {
-	row := q.db.QueryRowContext(ctx, incrementUserWins, id)
+func (q *Queries) IncrementUserWins(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, incrementUserWins, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -179,7 +179,7 @@ ORDER BY created_at DESC
 `
 
 func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, listUsers)
+	rows, err := q.db.Query(ctx, listUsers)
 	if err != nil {
 		return nil, err
 	}
@@ -201,9 +201,6 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -218,12 +215,12 @@ RETURNING id, username, email, password_hash, rating, wins, losses, created_at
 `
 
 type UpdateUserRatingParams struct {
-	ID     uuid.UUID
+	ID     pgtype.UUID
 	Rating int32
 }
 
 func (q *Queries) UpdateUserRating(ctx context.Context, arg UpdateUserRatingParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, updateUserRating, arg.ID, arg.Rating)
+	row := q.db.QueryRow(ctx, updateUserRating, arg.ID, arg.Rating)
 	var i User
 	err := row.Scan(
 		&i.ID,
