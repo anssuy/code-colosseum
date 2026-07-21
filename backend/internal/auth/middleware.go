@@ -12,23 +12,13 @@ func Middleware(tokens *TokenManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		accessToken, err := c.Cookie(accessTokenCookieName)
 		if err != nil {
-			c.AbortWithStatusJSON(
-				http.StatusUnauthorized,
-				gin.H{
-					"error": "authentication required",
-				},
-			)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 			return
 		}
 
 		userID, err := tokens.ValidateAccessToken(accessToken)
 		if err != nil {
-			c.AbortWithStatusJSON(
-				http.StatusUnauthorized,
-				gin.H{
-					"error": "invalid or expired access token",
-				},
-			)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired access token"})
 			return
 		}
 

@@ -13,11 +13,9 @@ import (
 )
 
 const (
-	accessTokenTTL         = 15 * time.Minute
-	refreshTokenTTL        = 7 * 24 * time.Hour
-	accessTokenCookieName  = "access_token"
-	refreshTokenCookieName = "refresh_token"
-	tokenIssuer            = "code-colosseum"
+	accessTokenTTL  = 15 * time.Minute
+	refreshTokenTTL = 7 * 24 * time.Hour
+	tokenIssuer     = "code-colosseum"
 )
 
 type TokenManager struct {
@@ -65,18 +63,12 @@ func HashRefreshToken(token string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func (m *TokenManager) ValidateAccessToken(
-	tokenString string,
-) (string, error) {
+func (m *TokenManager) ValidateAccessToken(tokenString string) (string, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		&jwt.RegisteredClaims{},
-		func(token *jwt.Token) (any, error) {
-			return m.secret, nil
-		},
-		jwt.WithValidMethods([]string{
-			jwt.SigningMethodHS256.Alg(),
-		}),
+		func(token *jwt.Token) (any, error) { return m.secret, nil },
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
 		jwt.WithIssuer(tokenIssuer),
 		jwt.WithExpirationRequired(),
 		jwt.WithIssuedAt(),

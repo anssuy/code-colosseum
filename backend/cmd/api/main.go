@@ -6,33 +6,27 @@ import (
 	"os"
 
 	"github.com/anssuy/code-colosseum/backend/internal/auth"
-	db "github.com/anssuy/code-colosseum/backend/internal/db/generated"
+	"github.com/anssuy/code-colosseum/backend/internal/db"
+	dbgen "github.com/anssuy/code-colosseum/backend/internal/db/generated"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	if err := godotenv.Load(); err != nil {
+		log.Println("no .env file found, using system env")
 	}
 
-	pool, err := pgxpool.New(
-		context.Background(),
-		os.Getenv("DATABASE_URL"),
-	)
+	auth.Init()
+
+	pool, err := db.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer pool.Close()
 
-	if err := pool.Ping(context.Background()); err != nil {
-		log.Fatal(err)
-	}
-
-	queries := db.New(pool)
+	queries := dbgen.New(pool)
 
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if len(jwtSecret) < 32 {
@@ -45,9 +39,7 @@ func main() {
 	router := gin.Default()
 
 	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Code Colosseum API",
-		})
+		c.JSON(200, gin.H{"message": "Code Colosseum API"})
 	})
 
 	router.GET("/api/health", func(c *gin.Context) {
