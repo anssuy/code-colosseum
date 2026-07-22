@@ -4,6 +4,9 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/anssuy/code-colosseum/backend/internal/auth"
 	"github.com/anssuy/code-colosseum/backend/internal/db"
@@ -37,6 +40,14 @@ func main() {
 	authHandler := auth.NewHandler(queries, tokenManager)
 
 	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "Code Colosseum API"})
