@@ -5,18 +5,24 @@
 package db
 
 import (
-	"time"
-
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type RefreshToken struct {
+	ID        pgtype.UUID
+	UserID    pgtype.UUID
+	TokenHash string
+	ExpiresAt pgtype.Timestamptz
+	CreatedAt pgtype.Timestamptz
+}
+
 type User struct {
-	ID           uuid.UUID
+	ID           pgtype.UUID
 	Username     string
 	Email        string
 	PasswordHash string
 	Rating       int32
 	Wins         int32
 	Losses       int32
-	CreatedAt    time.Time
+	CreatedAt    pgtype.Timestamptz
 }
