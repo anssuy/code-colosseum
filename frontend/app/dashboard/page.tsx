@@ -26,7 +26,11 @@ export default function DashboardPage() {
   }
 
   if (loading || !user) {
-    return <p className="min-h-screen bg-zinc-100 p-8 text-center text-zinc-900">Loading...</p>;
+    return (
+      <p className="min-h-screen bg-zinc-100 p-8 text-center text-zinc-900">
+        Loading...
+      </p>
+    );
   }
 
   return (
