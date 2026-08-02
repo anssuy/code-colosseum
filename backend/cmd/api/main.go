@@ -11,6 +11,7 @@ import (
 	"github.com/anssuy/code-colosseum/backend/internal/auth"
 	"github.com/anssuy/code-colosseum/backend/internal/db"
 	dbgen "github.com/anssuy/code-colosseum/backend/internal/db/generated"
+	"github.com/anssuy/code-colosseum/backend/internal/sandbox"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -56,6 +57,8 @@ func main() {
 	router.GET("/api/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
+
+	router.POST("/api/sandbox/run", sandbox.RunSandbox)
 
 	authRoutes := router.Group("/api/auth")
 	{
