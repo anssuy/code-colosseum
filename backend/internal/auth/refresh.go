@@ -7,6 +7,7 @@ import (
 	"time"
 
 	dbgen "github.com/anssuy/code-colosseum/backend/internal/db/generated"
+	"github.com/anssuy/code-colosseum/backend/internal/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
@@ -16,13 +17,13 @@ import (
 func (h *Handler) Refresh(c *gin.Context) {
 	oldRefreshToken, err := c.Cookie(refreshTokenCookieName)
 	if err != nil {
-		writeError(c, http.StatusUnauthorized, "refresh token is required")
+		httpx.WriteError(c, http.StatusUnauthorized, "refresh token is required")
 		return
 	}
 
 	newRefreshToken, err := GenerateRefreshToken()
 	if err != nil {
-		internalError(c, "generate refresh token error", err, "could not refresh session")
+		httpx.InternalError(c, "generate refresh token error", err, "could not refresh session")
 		return
 	}
 
@@ -40,17 +41,17 @@ func (h *Handler) Refresh(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			clearAuthCookies(c)
-			writeError(c, http.StatusUnauthorized, "invalid or expired refresh token")
+			httpx.WriteError(c, http.StatusUnauthorized, "invalid or expired refresh token")
 			return
 		}
 
-		internalError(c, "rotate refresh token error", err, "could not refresh session")
+		httpx.InternalError(c, "rotate refresh token error", err, "could not refresh session")
 		return
 	}
 
 	accessToken, err := h.tokens.GenerateAccessToken(userID.String())
 	if err != nil {
-		internalError(c, "generate access token error", err, "could not refresh session")
+		httpx.InternalError(c, "generate access token error", err, "could not refresh session")
 		return
 	}
 
@@ -61,7 +62,7 @@ func (h *Handler) Refresh(c *gin.Context) {
 	if err != nil {
 		log.Printf("get refreshed user error: %v", err)
 		clearAuthCookies(c)
-		writeError(c, http.StatusUnauthorized, "user no longer exists")
+		httpx.WriteError(c, http.StatusUnauthorized, "user no longer exists")
 		return
 	}
 

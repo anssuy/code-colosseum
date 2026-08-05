@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/anssuy/code-colosseum/backend/internal/httpx"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -12,23 +14,23 @@ import (
 func (h *Handler) Me(c *gin.Context) {
 	userIDString, exists := getAuthenticatedUserID(c)
 	if !exists {
-		writeError(c, http.StatusUnauthorized, "authentication required")
+		httpx.WriteError(c, http.StatusUnauthorized, "authentication required")
 		return
 	}
 
 	var userID pgtype.UUID
 	if err := userID.Scan(userIDString); err != nil || !userID.Valid {
-		writeError(c, http.StatusUnauthorized, "invalid access token")
+		httpx.WriteError(c, http.StatusUnauthorized, "invalid access token")
 		return
 	}
 
 	user, err := h.queries.GetUserByID(c.Request.Context(), userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			writeError(c, http.StatusUnauthorized, "user no longer exists")
+			httpx.WriteError(c, http.StatusUnauthorized, "user no longer exists")
 			return
 		}
-		internalError(c, "get current user error", err, "could not retrieve user")
+		httpx.InternalError(c, "get current user error", err, "could not retrieve user")
 		return
 	}
 

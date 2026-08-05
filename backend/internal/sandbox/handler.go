@@ -3,6 +3,8 @@ package sandbox
 import (
 	"net/http"
 
+	"github.com/anssuy/code-colosseum/backend/internal/httpx"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,19 +16,19 @@ type runRequest struct {
 func RunSandbox(c *gin.Context) {
 	var req runRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "code and language are required"})
+		httpx.WriteError(c, http.StatusBadRequest, "code and language are required")
 		return
 	}
 
 	run, ok := runners[req.Language]
 	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported language"})
+		httpx.WriteError(c, http.StatusBadRequest, "unsupported language")
 		return
 	}
 
 	output, err := run(c.Request.Context(), req.Code)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		httpx.WriteError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
