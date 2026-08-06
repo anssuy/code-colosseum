@@ -34,5 +34,5 @@ func (h *Handler) Me(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": userJSON(user)})
+	c.JSON(http.StatusOK, gin.H{"user": UserResponseFrom(user)})
 }

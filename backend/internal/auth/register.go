@@ -54,7 +54,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"user": userJSON(user)})
+	c.JSON(http.StatusCreated, gin.H{"user": UserResponseFrom(user)})
 }
 
 func handleCreateUserError(c *gin.Context, err error) {

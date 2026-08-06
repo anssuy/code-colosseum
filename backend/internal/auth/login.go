@@ -47,5 +47,5 @@ func (h *Handler) Login(c *gin.Context) {
 	}
 
 	setAuthCookies(c, accessToken, refreshToken)
-	c.JSON(http.StatusOK, gin.H{"user": userJSON(user)})
+	c.JSON(http.StatusOK, gin.H{"user": UserResponseFrom(user)})
 }

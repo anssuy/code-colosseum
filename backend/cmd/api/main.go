@@ -11,7 +11,11 @@ import (
 	"github.com/anssuy/code-colosseum/backend/internal/auth"
 	"github.com/anssuy/code-colosseum/backend/internal/db"
 	dbgen "github.com/anssuy/code-colosseum/backend/internal/db/generated"
+	"github.com/anssuy/code-colosseum/backend/internal/problems"
+	"github.com/anssuy/code-colosseum/backend/internal/problemtags"
 	"github.com/anssuy/code-colosseum/backend/internal/sandbox"
+	"github.com/anssuy/code-colosseum/backend/internal/tags"
+	"github.com/anssuy/code-colosseum/backend/internal/testcases"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -39,6 +43,10 @@ func main() {
 
 	tokenManager := auth.NewTokenManager(jwtSecret)
 	authHandler := auth.NewHandler(queries, tokenManager)
+	tagHandler := tags.NewHandler(queries)
+	problemHandler := problems.NewHandler(queries)
+	problemTagsHandler := problemtags.NewHandler(queries)
+	testCaseHandler := testcases.NewHandler(queries)
 
 	router := gin.Default()
 
@@ -68,6 +76,34 @@ func main() {
 		authRoutes.POST("/logout", authHandler.Logout)
 
 		authRoutes.GET("/me", auth.Middleware(tokenManager), authHandler.Me)
+	}
+
+	problemRoutes := router.Group("/api/problems")
+	{
+		problemRoutes.GET("", problemHandler.List)
+		problemRoutes.GET("/slug/:slug", problemHandler.Get)
+		problemRoutes.POST("", auth.Middleware(tokenManager), problemHandler.Create)
+		problemRoutes.PUT("/:id", auth.Middleware(tokenManager), problemHandler.Update)
+		problemRoutes.DELETE("/:id", auth.Middleware(tokenManager), problemHandler.Delete)
+
+		problemRoutes.POST("/:id/tags/:tagId", auth.Middleware(tokenManager), problemTagsHandler.AddTag)
+		problemRoutes.DELETE("/:id/tags/:tagId", auth.Middleware(tokenManager), problemTagsHandler.RemoveTag)
+		problemRoutes.GET("/:id/tags", problemTagsHandler.ListTags)
+
+		problemRoutes.GET("/:id/testcases", testCaseHandler.List)
+		problemRoutes.POST("/:id/testcases", auth.Middleware(tokenManager), testCaseHandler.Create)
+		problemRoutes.DELETE("/:id/testcases/:testCaseId", auth.Middleware(tokenManager), testCaseHandler.Delete)
+	}
+
+	tagRoutes := router.Group("/api/tags")
+	{
+		tagRoutes.GET("", tagHandler.List)
+		tagRoutes.GET("/slug/:slug", tagHandler.Get)
+		tagRoutes.POST("", auth.Middleware(tokenManager), tagHandler.Create)
+		tagRoutes.PUT("/:id", auth.Middleware(tokenManager), tagHandler.Update)
+		tagRoutes.DELETE("/:id", auth.Middleware(tokenManager), tagHandler.Delete)
+
+		tagRoutes.GET("/:id/problems", problemTagsHandler.ListProblems)
 	}
 
 	if err := router.Run(":8080"); err != nil {
