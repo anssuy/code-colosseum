@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	dbgen "github.com/anssuy/code-colosseum/backend/internal/db/generated"
+	"github.com/anssuy/code-colosseum/backend/internal/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -21,9 +22,8 @@ type registerRequest struct {
 
 func (h *Handler) Register(c *gin.Context) {
 	var req registerRequest
-
 	if err := c.ShouldBindJSON(&req); err != nil {
-		writeError(c, http.StatusBadRequest, "invalid registration data")
+		httpx.WriteError(c, http.StatusBadRequest, "invalid registration data")
 		return
 	}
 
@@ -31,13 +31,13 @@ func (h *Handler) Register(c *gin.Context) {
 	email := strings.ToLower(strings.TrimSpace(req.Email))
 
 	if len(username) < 3 || len(username) > 30 {
-		writeError(c, http.StatusBadRequest, "username must be between 3 and 30 characters")
+		httpx.WriteError(c, http.StatusBadRequest, "username must be between 3 and 30 characters")
 		return
 	}
 
 	passwordHash, err := HashPassword(req.Password)
 	if err != nil {
-		writeError(c, http.StatusBadRequest, err.Error())
+		httpx.WriteError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -54,7 +54,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"user": userJSON(user)})
+	c.JSON(http.StatusCreated, gin.H{"user": UserResponseFrom(user)})
 }
 
 func handleCreateUserError(c *gin.Context, err error) {
@@ -63,17 +63,17 @@ func handleCreateUserError(c *gin.Context, err error) {
 	if errors.As(err, &pgErr) && pgErr.Code == uniqueViolationCode {
 		switch pgErr.ConstraintName {
 		case "users_username_key":
-			writeError(c, http.StatusConflict, "username is already taken")
+			httpx.WriteError(c, http.StatusConflict, "username is already taken")
 
 		case "users_email_key":
-			writeError(c, http.StatusConflict, "email is already registered")
+			httpx.WriteError(c, http.StatusConflict, "email is already registered")
 
 		default:
-			writeError(c, http.StatusConflict, "user already exists")
+			httpx.WriteError(c, http.StatusConflict, "user already exists")
 		}
 
 		return
 	}
 
-	internalError(c, "create user error", err, "could not create user")
+	httpx.InternalError(c, "create user error", err, "could not create user")
 }

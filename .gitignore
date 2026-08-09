@@ -32,3 +32,4 @@ go.work.sum
 *.iml
 # .vscode/
 .zed
+.DS_STORE

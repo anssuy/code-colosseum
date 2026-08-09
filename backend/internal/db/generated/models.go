@@ -2,11 +2,82 @@
 // versions:
 //   sqlc v1.31.1
 
-package db
+package dbgen
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type Difficulty string
+
+const (
+	DifficultyEasy   Difficulty = "easy"
+	DifficultyMedium Difficulty = "medium"
+	DifficultyHard   Difficulty = "hard"
+)
+
+func (e *Difficulty) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Difficulty(s)
+	case string:
+		*e = Difficulty(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Difficulty: %T", src)
+	}
+	return nil
+}
+
+type NullDifficulty struct {
+	Difficulty Difficulty
+	Valid      bool // Valid is true if Difficulty is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDifficulty) Scan(value interface{}) error {
+	if value == nil {
+		ns.Difficulty, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Difficulty.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDifficulty) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Difficulty), nil
+}
+
+type Problem struct {
+	ID            pgtype.UUID
+	Title         string
+	Slug          string
+	Difficulty    Difficulty
+	Description   string
+	TimeLimitMs   int32
+	MemoryLimitMb int32
+	CreatedAt     pgtype.Timestamptz
+}
+
+type ProblemTag struct {
+	ProblemID pgtype.UUID
+	TagID     pgtype.UUID
+}
+
+type ProblemTestCase struct {
+	ID             pgtype.UUID
+	ProblemID      pgtype.UUID
+	Input          string
+	ExpectedOutput string
+	IsSample       bool
+	Ord            int32
+}
 
 type RefreshToken struct {
 	ID        pgtype.UUID
@@ -14,6 +85,12 @@ type RefreshToken struct {
 	TokenHash string
 	ExpiresAt pgtype.Timestamptz
 	CreatedAt pgtype.Timestamptz
+}
+
+type Tag struct {
+	ID   pgtype.UUID
+	Slug string
+	Name string
 }
 
 type User struct {

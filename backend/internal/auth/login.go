@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/anssuy/code-colosseum/backend/internal/httpx"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 )
@@ -17,7 +19,7 @@ type loginRequest struct {
 func (h *Handler) Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		writeError(c, http.StatusBadRequest, "invalid login data")
+		httpx.WriteError(c, http.StatusBadRequest, "invalid login data")
 		return
 	}
 
@@ -26,24 +28,24 @@ func (h *Handler) Login(c *gin.Context) {
 	user, err := h.queries.GetUserByEmail(c.Request.Context(), email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			writeError(c, http.StatusUnauthorized, "invalid email or password")
+			httpx.WriteError(c, http.StatusUnauthorized, "invalid email or password")
 			return
 		}
-		internalError(c, "get user by email error", err, "could not log in")
+		httpx.InternalError(c, "get user by email error", err, "could not log in")
 		return
 	}
 
 	if !CheckPassword(req.Password, user.PasswordHash) {
-		writeError(c, http.StatusUnauthorized, "invalid email or password")
+		httpx.WriteError(c, http.StatusUnauthorized, "invalid email or password")
 		return
 	}
 
 	accessToken, refreshToken, err := h.createSession(c.Request.Context(), user.ID)
 	if err != nil {
-		internalError(c, "create login session error", err, "could not log in")
+		httpx.InternalError(c, "create login session error", err, "could not log in")
 		return
 	}
 
 	setAuthCookies(c, accessToken, refreshToken)
-	c.JSON(http.StatusOK, gin.H{"user": userJSON(user)})
+	c.JSON(http.StatusOK, gin.H{"user": UserResponseFrom(user)})
 }
