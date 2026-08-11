@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -76,9 +77,9 @@ func runInContainer(ctx context.Context, image, filename, code string, cmd []str
 	dockerCmd.Stderr = dockerCmd.Stdout
 
 	err = dockerCmd.Run()
-	if ctx.Err() == context.DeadlineExceeded {
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 		exec.Command("docker", "kill", containerName).Run()
-		return out.String(), fmt.Errorf("execution timed out")
+		return out.String(), ErrTimeout
 	}
 	if err != nil {
 		return out.String(), fmt.Errorf("execution error: %w", err)
