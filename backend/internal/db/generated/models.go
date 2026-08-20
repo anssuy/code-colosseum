@@ -87,6 +87,19 @@ type RefreshToken struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type Submission struct {
+	ID              pgtype.UUID
+	UserID          pgtype.UUID
+	ProblemID       pgtype.UUID
+	Language        string
+	SourceCode      string
+	Status          string
+	PassedTests     int32
+	TotalTests      int32
+	ExecutionTimeMs pgtype.Int8
+	CreatedAt       pgtype.Timestamptz
+}
+
 type Tag struct {
 	ID   pgtype.UUID
 	Slug string

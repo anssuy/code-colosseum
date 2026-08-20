@@ -12,7 +12,7 @@ import (
 )
 
 func (h *Handler) Me(c *gin.Context) {
-	userIDString, exists := getAuthenticatedUserID(c)
+	userIDString, exists := GetAuthenticatedUserID(c)
 	if !exists {
 		httpx.WriteError(c, http.StatusUnauthorized, "authentication required")
 		return

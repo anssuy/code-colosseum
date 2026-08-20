@@ -27,7 +27,7 @@ func Middleware(tokens *TokenManager) gin.HandlerFunc {
 	}
 }
 
-func getAuthenticatedUserID(c *gin.Context) (string, bool) {
+func GetAuthenticatedUserID(c *gin.Context) (string, bool) {
 	value, exists := c.Get(userIDContextKey)
 	if !exists {
 		return "", false

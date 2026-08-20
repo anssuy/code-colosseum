@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/anssuy/code-colosseum/backend/internal/submissions"
 	"github.com/gin-contrib/cors"
 
 	"github.com/anssuy/code-colosseum/backend/internal/auth"
@@ -47,6 +48,7 @@ func main() {
 	problemHandler := problems.NewHandler(queries)
 	problemTagsHandler := problemtags.NewHandler(queries)
 	testCaseHandler := testcases.NewHandler(queries)
+	submissionHandler := submissions.NewHandler(queries)
 
 	router := gin.Default()
 
@@ -93,6 +95,7 @@ func main() {
 		problemRoutes.GET("/:id/testcases", testCaseHandler.List)
 		problemRoutes.POST("/:id/testcases", auth.Middleware(tokenManager), testCaseHandler.Create)
 		problemRoutes.DELETE("/:id/testcases/:testCaseId", auth.Middleware(tokenManager), testCaseHandler.Delete)
+		problemRoutes.POST("/:id/submit", auth.Middleware(tokenManager), submissionHandler.Submit)
 	}
 
 	tagRoutes := router.Group("/api/tags")
