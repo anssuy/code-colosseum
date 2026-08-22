@@ -12,23 +12,15 @@ import (
 )
 
 const createSubmission = `-- name: CreateSubmission :one
-INSERT INTO submissions (
-    user_id,
-    problem_id,
-    language,
-    source_code,
-    status,
-    passed_tests,
-    total_tests,
-    execution_time_ms
-)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, user_id, problem_id, language, source_code, status, passed_tests, total_tests, execution_time_ms, created_at
+INSERT INTO submissions (user_id, problem_id, match_id, language, source_code, status, passed_tests, total_tests, execution_time_ms)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id, user_id, problem_id, language, source_code, status, passed_tests, total_tests, execution_time_ms, created_at, match_id
 `
 
 type CreateSubmissionParams struct {
 	UserID          pgtype.UUID
 	ProblemID       pgtype.UUID
+	MatchID         pgtype.UUID
 	Language        string
 	SourceCode      string
 	Status          string
@@ -41,6 +33,7 @@ func (q *Queries) CreateSubmission(ctx context.Context, arg CreateSubmissionPara
 	row := q.db.QueryRow(ctx, createSubmission,
 		arg.UserID,
 		arg.ProblemID,
+		arg.MatchID,
 		arg.Language,
 		arg.SourceCode,
 		arg.Status,
@@ -60,12 +53,13 @@ func (q *Queries) CreateSubmission(ctx context.Context, arg CreateSubmissionPara
 		&i.TotalTests,
 		&i.ExecutionTimeMs,
 		&i.CreatedAt,
+		&i.MatchID,
 	)
 	return i, err
 }
 
 const getSubmissionByID = `-- name: GetSubmissionByID :one
-SELECT id, user_id, problem_id, language, source_code, status, passed_tests, total_tests, execution_time_ms, created_at FROM submissions
+SELECT id, user_id, problem_id, language, source_code, status, passed_tests, total_tests, execution_time_ms, created_at, match_id FROM submissions
 WHERE id = $1
 LIMIT 1
 `
@@ -84,12 +78,13 @@ func (q *Queries) GetSubmissionByID(ctx context.Context, id pgtype.UUID) (Submis
 		&i.TotalTests,
 		&i.ExecutionTimeMs,
 		&i.CreatedAt,
+		&i.MatchID,
 	)
 	return i, err
 }
 
 const listSubmissionsForProblem = `-- name: ListSubmissionsForProblem :many
-SELECT id, user_id, problem_id, language, source_code, status, passed_tests, total_tests, execution_time_ms, created_at FROM submissions
+SELECT id, user_id, problem_id, language, source_code, status, passed_tests, total_tests, execution_time_ms, created_at, match_id FROM submissions
 WHERE problem_id = $1
 ORDER BY created_at DESC
 `
@@ -114,6 +109,7 @@ func (q *Queries) ListSubmissionsForProblem(ctx context.Context, problemID pgtyp
 			&i.TotalTests,
 			&i.ExecutionTimeMs,
 			&i.CreatedAt,
+			&i.MatchID,
 		); err != nil {
 			return nil, err
 		}
@@ -126,7 +122,7 @@ func (q *Queries) ListSubmissionsForProblem(ctx context.Context, problemID pgtyp
 }
 
 const listSubmissionsForUser = `-- name: ListSubmissionsForUser :many
-SELECT id, user_id, problem_id, language, source_code, status, passed_tests, total_tests, execution_time_ms, created_at FROM submissions
+SELECT id, user_id, problem_id, language, source_code, status, passed_tests, total_tests, execution_time_ms, created_at, match_id FROM submissions
 WHERE user_id = $1
 ORDER BY created_at DESC
 `
@@ -151,6 +147,7 @@ func (q *Queries) ListSubmissionsForUser(ctx context.Context, userID pgtype.UUID
 			&i.TotalTests,
 			&i.ExecutionTimeMs,
 			&i.CreatedAt,
+			&i.MatchID,
 		); err != nil {
 			return nil, err
 		}

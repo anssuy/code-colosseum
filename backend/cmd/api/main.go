@@ -6,18 +6,19 @@ import (
 	"os"
 	"time"
 
-	"github.com/anssuy/code-colosseum/backend/internal/submissions"
-	"github.com/gin-contrib/cors"
-
 	"github.com/anssuy/code-colosseum/backend/internal/auth"
 	"github.com/anssuy/code-colosseum/backend/internal/db"
 	dbgen "github.com/anssuy/code-colosseum/backend/internal/db/generated"
+	"github.com/anssuy/code-colosseum/backend/internal/judge"
+	"github.com/anssuy/code-colosseum/backend/internal/match"
 	"github.com/anssuy/code-colosseum/backend/internal/problems"
 	"github.com/anssuy/code-colosseum/backend/internal/problemtags"
 	"github.com/anssuy/code-colosseum/backend/internal/sandbox"
+	"github.com/anssuy/code-colosseum/backend/internal/submissions"
 	"github.com/anssuy/code-colosseum/backend/internal/tags"
 	"github.com/anssuy/code-colosseum/backend/internal/testcases"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -42,6 +43,9 @@ func main() {
 		log.Fatal("JWT_SECRET must be at least 32 characters")
 	}
 
+	judgePool := judge.NewPool(4)
+	matchManager := match.NewManager(queries, judgePool)
+
 	tokenManager := auth.NewTokenManager(jwtSecret)
 	authHandler := auth.NewHandler(queries, tokenManager)
 	tagHandler := tags.NewHandler(queries)
@@ -49,6 +53,7 @@ func main() {
 	problemTagsHandler := problemtags.NewHandler(queries)
 	testCaseHandler := testcases.NewHandler(queries)
 	submissionHandler := submissions.NewHandler(queries)
+	wsHandler := match.NewWSHandler(queries, matchManager)
 
 	router := gin.Default()
 
@@ -107,6 +112,11 @@ func main() {
 		tagRoutes.DELETE("/:id", auth.Middleware(tokenManager), tagHandler.Delete)
 
 		tagRoutes.GET("/:id/problems", problemTagsHandler.ListProblems)
+	}
+
+	matchRoutes := router.Group("/api/matches")
+	{
+		matchRoutes.GET("/:id/ws", auth.Middleware(tokenManager), wsHandler.Connect)
 	}
 
 	if err := router.Run(":8080"); err != nil {
