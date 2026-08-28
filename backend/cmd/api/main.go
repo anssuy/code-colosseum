@@ -17,6 +17,7 @@ import (
 	"github.com/anssuy/code-colosseum/backend/internal/submissions"
 	"github.com/anssuy/code-colosseum/backend/internal/tags"
 	"github.com/anssuy/code-colosseum/backend/internal/testcases"
+	"github.com/anssuy/code-colosseum/backend/internal/ws"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -43,9 +44,9 @@ func main() {
 		log.Fatal("JWT_SECRET must be at least 32 characters")
 	}
 
-	judgePool := judge.NewPool(4)
-	matchManager := match.NewManager(queries, judgePool)
+	hub := ws.NewHub()
 
+	wsHandler := ws.NewHandler(hub)
 	tokenManager := auth.NewTokenManager(jwtSecret)
 	authHandler := auth.NewHandler(queries, tokenManager)
 	tagHandler := tags.NewHandler(queries)
@@ -53,7 +54,10 @@ func main() {
 	problemTagsHandler := problemtags.NewHandler(queries)
 	testCaseHandler := testcases.NewHandler(queries)
 	submissionHandler := submissions.NewHandler(queries)
-	wsHandler := match.NewWSHandler(queries, matchManager)
+	matchHandler := match.NewHandler(queries)
+
+	judgePool := judge.NewPool(4)
+	_ = match.NewLobby(hub, queries, judgePool)
 
 	router := gin.Default()
 
@@ -114,10 +118,8 @@ func main() {
 		tagRoutes.GET("/:id/problems", problemTagsHandler.ListProblems)
 	}
 
-	matchRoutes := router.Group("/api/matches")
-	{
-		matchRoutes.GET("/:id/ws", auth.Middleware(tokenManager), wsHandler.Connect)
-	}
+	router.GET("/api/ws", auth.Middleware(tokenManager), wsHandler.Connect)
+	router.GET("/api/matches/:id", auth.Middleware(tokenManager), matchHandler.Get)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

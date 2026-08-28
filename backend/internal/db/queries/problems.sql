@@ -11,6 +11,12 @@ WHERE id = $1;
 SELECT * FROM problems
 WHERE slug = $1;
 
+-- name: GetRandomProblemByDifficulty :one
+SELECT * FROM problems
+WHERE difficulty = $1
+ORDER BY random()
+LIMIT 1;
+
 -- name: ListProblems :many
 SELECT * FROM problems
 ORDER BY created_at DESC

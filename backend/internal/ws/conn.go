@@ -1,4 +1,4 @@
-package match
+package ws
 
 import (
 	"time"
@@ -15,24 +15,30 @@ const (
 type Conn struct {
 	ws     *websocket.Conn
 	send   chan []byte
-	room   *Room
 	userID string
+	hub    *Hub
 }
 
-func NewConn(ws *websocket.Conn, room *Room, userID string) *Conn {
+func newConn(wsConn *websocket.Conn, userID string, hub *Hub) *Conn {
 	return &Conn{
-		ws:     ws,
+		ws:     wsConn,
 		send:   make(chan []byte, 16),
-		room:   room,
 		userID: userID,
+		hub:    hub,
 	}
 }
 
-func (c *Conn) ReadPump() {
-	defer func() {
-		c.room.unregister <- c
-		c.ws.Close()
-	}()
+func (c *Conn) Send(msg []byte) {
+	select {
+	case c.send <- msg:
+	default:
+		c.hub.remove(c)
+	}
+}
+
+func (c *Conn) readPump() {
+	defer c.hub.remove(c)
+	defer c.ws.Close()
 
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error {
@@ -45,11 +51,11 @@ func (c *Conn) ReadPump() {
 		if err != nil {
 			break
 		}
-		c.room.incoming <- Event{Conn: c, UserID: c.userID, Data: msg}
+		c.hub.incoming <- InboundEvent{UserID: c.userID, Data: msg}
 	}
 }
 
-func (c *Conn) WritePump() {
+func (c *Conn) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()

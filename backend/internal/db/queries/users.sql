@@ -60,6 +60,12 @@ WHERE id = $1
 RETURNING *;
 
 
+-- name: RecordMatchResult :one
+UPDATE users
+SET rating = $2, wins = wins + $3, losses = losses + $4
+WHERE id = $1
+RETURNING *;
+
 -- name: DeleteUser :exec
 DELETE FROM users
 WHERE id = $1;

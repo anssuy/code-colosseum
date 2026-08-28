@@ -207,6 +207,41 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const recordMatchResult = `-- name: RecordMatchResult :one
+UPDATE users
+SET rating = $2, wins = wins + $3, losses = losses + $4
+WHERE id = $1
+RETURNING id, username, email, password_hash, rating, wins, losses, created_at
+`
+
+type RecordMatchResultParams struct {
+	ID     pgtype.UUID
+	Rating int32
+	Wins   int32
+	Losses int32
+}
+
+func (q *Queries) RecordMatchResult(ctx context.Context, arg RecordMatchResultParams) (User, error) {
+	row := q.db.QueryRow(ctx, recordMatchResult,
+		arg.ID,
+		arg.Rating,
+		arg.Wins,
+		arg.Losses,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Rating,
+		&i.Wins,
+		&i.Losses,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const updateUserRating = `-- name: UpdateUserRating :one
 UPDATE users
 SET rating = $2

@@ -123,6 +123,29 @@ func (q *Queries) GetProblemBySlug(ctx context.Context, slug string) (Problem, e
 	return i, err
 }
 
+const getRandomProblemByDifficulty = `-- name: GetRandomProblemByDifficulty :one
+SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at FROM problems
+WHERE difficulty = $1
+ORDER BY random()
+LIMIT 1
+`
+
+func (q *Queries) GetRandomProblemByDifficulty(ctx context.Context, difficulty Difficulty) (Problem, error) {
+	row := q.db.QueryRow(ctx, getRandomProblemByDifficulty, difficulty)
+	var i Problem
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Slug,
+		&i.Difficulty,
+		&i.Description,
+		&i.TimeLimitMs,
+		&i.MemoryLimitMb,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listProblems = `-- name: ListProblems :many
 SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at FROM problems
 ORDER BY created_at DESC

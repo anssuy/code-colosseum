@@ -1,36 +1,59 @@
 package match
 
-import (
-	"time"
+import "encoding/json"
 
-	"github.com/jackc/pgx/v5/pgtype"
-)
-
-type Status string
+type MessageType string
 
 const (
-	StatusWaiting   Status = "waiting"
-	StatusActive    Status = "active"
-	StatusFinished  Status = "finished"
-	StatusAbandoned Status = "abandoned"
+	MsgQueueJoin        MessageType = "queue_join"
+	MsgQueueLeft        MessageType = "queue_left"
+	MsgQueueJoined      MessageType = "queue_joined"
+	MsgMatchFound       MessageType = "match_found"
+	MsgReady            MessageType = "ready"
+	MsgSubmit           MessageType = "submit"
+	MsgSubmissionResult MessageType = "submission_result"
+	MsgOpponentJoined   MessageType = "opponent_joined"
+	MsgOpponentLeft     MessageType = "opponent_left"
+	MsgMatchStarted     MessageType = "match_started"
+	MsgMatchFinished    MessageType = "match_finished"
+	MsgMatchAbandoned   MessageType = "match_abandoned"
+	MsgError            MessageType = "error"
 )
 
-type Match struct {
-	ID          pgtype.UUID
-	ProblemID   pgtype.UUID
-	PlayerOneID pgtype.UUID
-	PlayerTwoID pgtype.UUID
-	WinnerID    pgtype.UUID
-	Status      Status
-	CreatedAt   time.Time
+type InboundMessage struct {
+	Type    MessageType     `json:"type"`
+	Payload json.RawMessage `json:"payload"`
+}
+
+type OutboundMessage struct {
+	Type    MessageType `json:"type"`
+	Payload interface{} `json:"payload"`
+}
+
+type SubmitPayload struct {
+	Language   string `json:"language"`
+	SourceCode string `json:"sourceCode"`
+}
+
+type MatchFoundPayload struct {
+	MatchID string `json:"matchId"`
+}
+
+type SubmissionResultPayload struct {
+	SubmissionID string `json:"submissionId"`
+	Status       string `json:"status"`
+	PassedTests  int32  `json:"passedTests"`
+	TotalTests   int32  `json:"totalTests"`
 }
 
 type MatchFinishedPayload struct {
 	WinnerID string `json:"winnerId"`
 }
 
-type Player struct {
-	UserID pgtype.UUID
-	Conn   *Conn
-	Ready  bool
+type OpponentEventPayload struct {
+	UserID string `json:"userId"`
+}
+
+type ErrorPayload struct {
+	Message string `json:"message"`
 }
