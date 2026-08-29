@@ -71,7 +71,7 @@ func (q *Queries) GetTagBySlug(ctx context.Context, slug string) (Tag, error) {
 }
 
 const listProblemsForTag = `-- name: ListProblemsForTag :many
-SELECT p.id, p.title, p.slug, p.difficulty, p.description, p.time_limit_ms, p.memory_limit_mb, p.created_at FROM problems p
+SELECT p.id, p.title, p.slug, p.difficulty, p.description, p.time_limit_ms, p.memory_limit_mb, p.created_at, p.function_name, p.params, p.return_type FROM problems p
 JOIN problem_tags pt ON pt.problem_id = p.id
 WHERE pt.tag_id = $1
 ORDER BY p.created_at DESC
@@ -95,6 +95,9 @@ func (q *Queries) ListProblemsForTag(ctx context.Context, tagID pgtype.UUID) ([]
 			&i.TimeLimitMs,
 			&i.MemoryLimitMb,
 			&i.CreatedAt,
+			&i.FunctionName,
+			&i.Params,
+			&i.ReturnType,
 		); err != nil {
 			return nil, err
 		}

@@ -23,6 +23,7 @@ type Room struct {
 	queries      *dbgen.Queries
 	judgePool    *judge.Pool
 	testCases    []judge.TestCase
+	functionName string
 	hub          *ws.Hub
 	onFinish     func(playerOneID, playerTwoID string)
 	disconnected map[string]time.Time
@@ -50,12 +51,18 @@ func NewRoom(ctx context.Context, m dbgen.Match, queries *dbgen.Queries, pool *j
 		}
 	}
 
+	problem, err := queries.GetProblemByID(ctx, m.ProblemID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Room{
 		match:        m,
 		ready:        make(map[string]bool),
 		queries:      queries,
 		judgePool:    pool,
 		testCases:    testCases,
+		functionName: problem.FunctionName,
 		hub:          hub,
 		onFinish:     onFinish,
 		disconnected: make(map[string]time.Time),
@@ -79,11 +86,12 @@ func (r *Room) HandleSubmit(userID, language, sourceCode string) error {
 
 	resultCh := make(chan judge.Result, 1)
 	r.judgePool.Submit(judge.Job{
-		Ctx:       context.Background(),
-		Language:  language,
-		Code:      sourceCode,
-		TestCases: r.testCases,
-		ResultCh:  resultCh,
+		Ctx:          context.Background(),
+		Language:     language,
+		FunctionName: r.functionName,
+		Code:         sourceCode,
+		TestCases:    r.testCases,
+		ResultCh:     resultCh,
 	})
 
 	go func() {

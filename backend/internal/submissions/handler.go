@@ -69,7 +69,8 @@ func (h *Handler) Submit(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	if _, err := h.queries.GetProblemByID(ctx, problemID); err != nil {
+	problem, err := h.queries.GetProblemByID(ctx, problemID)
+	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			httpx.WriteError(c, http.StatusNotFound, "problem not found")
 			return
@@ -97,7 +98,7 @@ func (h *Handler) Submit(c *gin.Context) {
 		}
 	}
 
-	result := judge.Run(ctx, req.Language, req.SourceCode, testCases)
+	result := judge.Run(ctx, req.Language, problem.FunctionName, req.SourceCode, testCases)
 
 	submission, err := h.queries.CreateSubmission(ctx, dbgen.CreateSubmissionParams{
 		UserID:      userID,

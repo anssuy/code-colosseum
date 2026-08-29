@@ -35,16 +35,19 @@ func (q *Queries) CountProblemsByDifficulty(ctx context.Context, difficulty Diff
 }
 
 const createProblem = `-- name: CreateProblem :one
-INSERT INTO problems (title, slug, difficulty, description)
-VALUES ($1, $2, $3, $4)
-RETURNING id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at
+INSERT INTO problems (title, slug, difficulty, description, function_name, params, return_type)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at, function_name, params, return_type
 `
 
 type CreateProblemParams struct {
-	Title       string
-	Slug        string
-	Difficulty  Difficulty
-	Description string
+	Title        string
+	Slug         string
+	Difficulty   Difficulty
+	Description  string
+	FunctionName string
+	Params       []byte
+	ReturnType   string
 }
 
 func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (Problem, error) {
@@ -53,6 +56,9 @@ func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (P
 		arg.Slug,
 		arg.Difficulty,
 		arg.Description,
+		arg.FunctionName,
+		arg.Params,
+		arg.ReturnType,
 	)
 	var i Problem
 	err := row.Scan(
@@ -64,6 +70,9 @@ func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (P
 		&i.TimeLimitMs,
 		&i.MemoryLimitMb,
 		&i.CreatedAt,
+		&i.FunctionName,
+		&i.Params,
+		&i.ReturnType,
 	)
 	return i, err
 }
@@ -82,7 +91,7 @@ func (q *Queries) DeleteProblem(ctx context.Context, id pgtype.UUID) (int64, err
 }
 
 const getProblemByID = `-- name: GetProblemByID :one
-SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at FROM problems
+SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at, function_name, params, return_type FROM problems
 WHERE id = $1
 `
 
@@ -98,12 +107,15 @@ func (q *Queries) GetProblemByID(ctx context.Context, id pgtype.UUID) (Problem, 
 		&i.TimeLimitMs,
 		&i.MemoryLimitMb,
 		&i.CreatedAt,
+		&i.FunctionName,
+		&i.Params,
+		&i.ReturnType,
 	)
 	return i, err
 }
 
 const getProblemBySlug = `-- name: GetProblemBySlug :one
-SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at FROM problems
+SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at, function_name, params, return_type FROM problems
 WHERE slug = $1
 `
 
@@ -119,12 +131,15 @@ func (q *Queries) GetProblemBySlug(ctx context.Context, slug string) (Problem, e
 		&i.TimeLimitMs,
 		&i.MemoryLimitMb,
 		&i.CreatedAt,
+		&i.FunctionName,
+		&i.Params,
+		&i.ReturnType,
 	)
 	return i, err
 }
 
 const getRandomProblemByDifficulty = `-- name: GetRandomProblemByDifficulty :one
-SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at FROM problems
+SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at, function_name, params, return_type FROM problems
 WHERE difficulty = $1
 ORDER BY random()
 LIMIT 1
@@ -142,12 +157,15 @@ func (q *Queries) GetRandomProblemByDifficulty(ctx context.Context, difficulty D
 		&i.TimeLimitMs,
 		&i.MemoryLimitMb,
 		&i.CreatedAt,
+		&i.FunctionName,
+		&i.Params,
+		&i.ReturnType,
 	)
 	return i, err
 }
 
 const listProblems = `-- name: ListProblems :many
-SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at FROM problems
+SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at, function_name, params, return_type FROM problems
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -175,6 +193,9 @@ func (q *Queries) ListProblems(ctx context.Context, arg ListProblemsParams) ([]P
 			&i.TimeLimitMs,
 			&i.MemoryLimitMb,
 			&i.CreatedAt,
+			&i.FunctionName,
+			&i.Params,
+			&i.ReturnType,
 		); err != nil {
 			return nil, err
 		}
@@ -187,7 +208,7 @@ func (q *Queries) ListProblems(ctx context.Context, arg ListProblemsParams) ([]P
 }
 
 const listProblemsByDifficulty = `-- name: ListProblemsByDifficulty :many
-SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at FROM problems
+SELECT id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at, function_name, params, return_type FROM problems
 WHERE difficulty = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -217,6 +238,9 @@ func (q *Queries) ListProblemsByDifficulty(ctx context.Context, arg ListProblems
 			&i.TimeLimitMs,
 			&i.MemoryLimitMb,
 			&i.CreatedAt,
+			&i.FunctionName,
+			&i.Params,
+			&i.ReturnType,
 		); err != nil {
 			return nil, err
 		}
@@ -230,17 +254,20 @@ func (q *Queries) ListProblemsByDifficulty(ctx context.Context, arg ListProblems
 
 const updateProblem = `-- name: UpdateProblem :one
 UPDATE problems
-SET title = $2, slug = $3, difficulty = $4, description = $5
+SET title = $2, slug = $3, difficulty = $4, description = $5, function_name = $6, params = $7, return_type = $8
 WHERE id = $1
-RETURNING id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at
+RETURNING id, title, slug, difficulty, description, time_limit_ms, memory_limit_mb, created_at, function_name, params, return_type
 `
 
 type UpdateProblemParams struct {
-	ID          pgtype.UUID
-	Title       string
-	Slug        string
-	Difficulty  Difficulty
-	Description string
+	ID           pgtype.UUID
+	Title        string
+	Slug         string
+	Difficulty   Difficulty
+	Description  string
+	FunctionName string
+	Params       []byte
+	ReturnType   string
 }
 
 func (q *Queries) UpdateProblem(ctx context.Context, arg UpdateProblemParams) (Problem, error) {
@@ -250,6 +277,9 @@ func (q *Queries) UpdateProblem(ctx context.Context, arg UpdateProblemParams) (P
 		arg.Slug,
 		arg.Difficulty,
 		arg.Description,
+		arg.FunctionName,
+		arg.Params,
+		arg.ReturnType,
 	)
 	var i Problem
 	err := row.Scan(
@@ -261,6 +291,9 @@ func (q *Queries) UpdateProblem(ctx context.Context, arg UpdateProblemParams) (P
 		&i.TimeLimitMs,
 		&i.MemoryLimitMb,
 		&i.CreatedAt,
+		&i.FunctionName,
+		&i.Params,
+		&i.ReturnType,
 	)
 	return i, err
 }

@@ -119,6 +119,9 @@ type Problem struct {
 	TimeLimitMs   int32
 	MemoryLimitMb int32
 	CreatedAt     pgtype.Timestamptz
+	FunctionName  string
+	Params        []byte
+	ReturnType    string
 }
 
 type ProblemTag struct {

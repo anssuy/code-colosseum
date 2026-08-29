@@ -26,6 +26,12 @@ type MatchData = {
   };
 };
 
+type Stubs = {
+  python: string;
+  javascript: string;
+  typescript: string;
+};
+
 type ProblemResponse = {
   problem: {
     id: string;
@@ -33,8 +39,10 @@ type ProblemResponse = {
     slug: string;
     difficulty: string;
     description: string;
-    testCases: TestCase[];
+    functionName: string;
+    stubs: Stubs;
   };
+  testCases: TestCase[];
 };
 
 type TestCase = {
@@ -42,10 +50,6 @@ type TestCase = {
   input: string;
   expectedOutput: string;
   isSample: boolean;
-};
-
-type TestCasesResponse = {
-  testCases: TestCase[];
 };
 
 const LANGUAGES = [
@@ -60,6 +64,7 @@ export default function MatchPage() {
 
   const [data, setData] = useState<MatchData | null>(null);
   const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [stubs, setStubs] = useState<Stubs | null>(null);
   const [language, setLanguage] = useState("python");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(true);
@@ -72,9 +77,21 @@ export default function MatchPage() {
           `/api/problems/slug/${matchData.problem.slug}`,
         );
       })
-      .then((p) => setTestCases(p.testCases))
+      .then((p) => {
+        console.log(p);
+        setTestCases(p.testCases);
+        setStubs(p.problem.stubs);
+        setCode(p.problem.stubs.python);
+      })
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    if (stubs) {
+      setCode(stubs[newLanguage as keyof Stubs]);
+    }
+  };
 
   const handleSubmit = () => {
     submit(language, code);
@@ -92,8 +109,6 @@ export default function MatchPage() {
   const isFinished = !!winnerId || data.match.status === "finished";
   const isAbandoned = abandoned || data.match.status === "abandoned";
   const matchWinnerId = winnerId || data.match.winnerId;
-
-  console.log(isActive, isFinished, isAbandoned, data);
 
   return (
     <div className="grid h-[calc(100vh-4rem)] grid-cols-2 gap-4 p-4">
@@ -174,7 +189,7 @@ export default function MatchPage() {
         <div className="flex items-center justify-between">
           <select
             className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm"
-            onChange={(e) => setLanguage(e.target.value)}
+            onChange={(e) => handleLanguageChange(e.target.value)}
             value={language}
           >
             {LANGUAGES.map((l) => (

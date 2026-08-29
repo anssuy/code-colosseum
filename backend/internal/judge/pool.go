@@ -3,11 +3,12 @@ package judge
 import "context"
 
 type Job struct {
-	Ctx       context.Context
-	Language  string
-	Code      string
-	TestCases []TestCase
-	ResultCh  chan<- Result
+	Ctx          context.Context
+	Language     string
+	FunctionName string
+	Code         string
+	TestCases    []TestCase
+	ResultCh     chan<- Result
 }
 
 type Pool struct {
@@ -26,7 +27,7 @@ func NewPool(workers int) *Pool {
 
 func (p *Pool) worker() {
 	for job := range p.jobs {
-		result := Run(job.Ctx, job.Language, job.Code, job.TestCases)
+		result := Run(job.Ctx, job.Language, job.FunctionName, job.Code, job.TestCases)
 		job.ResultCh <- result
 	}
 }

@@ -1,6 +1,7 @@
 package problems
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -14,10 +15,13 @@ import (
 )
 
 type updateProblemRequest struct {
-	Title       string `json:"title" binding:"required"`
-	Slug        string `json:"slug" binding:"required"`
-	Difficulty  string `json:"difficulty" binding:"required,oneof=easy medium hard"`
-	Description string `json:"description" binding:"required"`
+	Title        string           `json:"title" binding:"required"`
+	Slug         string           `json:"slug" binding:"required"`
+	Difficulty   dbgen.Difficulty `json:"difficulty" binding:"required,oneof=easy medium hard"`
+	Description  string           `json:"description" binding:"required"`
+	FunctionName string           `json:"functionName" binding:"required"`
+	Params       []ParamSpec      `json:"params" binding:"required,dive"`
+	ReturnType   string           `json:"returnType" binding:"required"`
 }
 
 func (h *Handler) Update(c *gin.Context) {
@@ -34,19 +38,29 @@ func (h *Handler) Update(c *gin.Context) {
 
 	title := strings.TrimSpace(req.Title)
 	slug := strings.TrimSpace(req.Slug)
-	if title == "" || slug == "" {
-		httpx.WriteError(c, http.StatusBadRequest, "title and slug cannot be empty")
+	functionName := strings.TrimSpace(req.FunctionName)
+	if title == "" || slug == "" || functionName == "" {
+		httpx.WriteError(c, http.StatusBadRequest, "title, slug, and function name cannot be empty")
+		return
+	}
+
+	paramsJSON, err := json.Marshal(req.Params)
+	if err != nil {
+		httpx.WriteError(c, http.StatusBadRequest, "invalid params")
 		return
 	}
 
 	problem, err := h.queries.UpdateProblem(
 		c.Request.Context(),
 		dbgen.UpdateProblemParams{
-			ID:          id,
-			Title:       title,
-			Slug:        slug,
-			Difficulty:  dbgen.Difficulty(req.Difficulty),
-			Description: req.Description,
+			ID:           id,
+			Title:        title,
+			Slug:         slug,
+			Difficulty:   req.Difficulty,
+			Description:  req.Description,
+			FunctionName: functionName,
+			Params:       paramsJSON,
+			ReturnType:   req.ReturnType,
 		},
 	)
 	if err != nil {

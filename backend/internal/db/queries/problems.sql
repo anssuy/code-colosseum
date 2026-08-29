@@ -1,6 +1,6 @@
 -- name: CreateProblem :one
-INSERT INTO problems (title, slug, difficulty, description)
-VALUES ($1, $2, $3, $4)
+INSERT INTO problems (title, slug, difficulty, description, function_name, params, return_type)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
 -- name: GetProblemByID :one
@@ -37,7 +37,7 @@ WHERE difficulty = $1;
 
 -- name: UpdateProblem :one
 UPDATE problems
-SET title = $2, slug = $3, difficulty = $4, description = $5
+SET title = $2, slug = $3, difficulty = $4, description = $5, function_name = $6, params = $7, return_type = $8
 WHERE id = $1
 RETURNING *;
 
