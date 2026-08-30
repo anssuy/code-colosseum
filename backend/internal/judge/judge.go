@@ -52,6 +52,11 @@ func Run(ctx context.Context, language, functionName, code string, testCases []T
 		TotalTests: int32(len(testCases)),
 	}
 
+	if err := checkImports(ctx, language, code); err != nil {
+		result.Status = RuntimeError
+		return result
+	}
+
 	wrapped, err := wrapCode(language, functionName, code)
 	if err != nil {
 		result.Status = RuntimeError
