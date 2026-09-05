@@ -26,6 +26,7 @@ func NewHandler(queries *dbgen.Queries) *Handler {
 type submitRequest struct {
 	Language   string `json:"language" binding:"required"`
 	SourceCode string `json:"sourceCode" binding:"required"`
+	MatchID    string `json:"matchId"`
 }
 
 func (h *Handler) Submit(c *gin.Context) {
@@ -58,21 +59,29 @@ func (h *Handler) Submit(c *gin.Context) {
 		return
 	}
 
+	var matchID pgtype.UUID
+	if req.MatchID != "" {
+		if err := matchID.Scan(req.MatchID); err != nil {
+			httpx.WriteError(c, http.StatusBadRequest, "invalid match ID")
+			return
+		}
+	}
+
 	ctx := c.Request.Context()
 
-	if _, err := h.queries.GetProblemByID(ctx, problemID); err != nil {
+	problem, err := h.queries.GetProblemByID(ctx, problemID)
+	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			httpx.WriteError(c, http.StatusNotFound, "problem not found")
 			return
 		}
-
-		httpx.WriteError(c, http.StatusInternalServerError, "could not load problem")
+		httpx.InternalError(c, "get problem by id error", err, "could not load problem")
 		return
 	}
 
 	dbTestCases, err := h.queries.ListTestCasesForProblem(ctx, problemID)
 	if err != nil {
-		httpx.WriteError(c, http.StatusInternalServerError, "could not load test cases")
+		httpx.InternalError(c, "list test cases error", err, "could not load test cases")
 		return
 	}
 
@@ -89,11 +98,12 @@ func (h *Handler) Submit(c *gin.Context) {
 		}
 	}
 
-	result := judge.Run(ctx, req.Language, req.SourceCode, testCases)
+	result := judge.Run(ctx, req.Language, problem.FunctionName, req.SourceCode, testCases)
 
 	submission, err := h.queries.CreateSubmission(ctx, dbgen.CreateSubmissionParams{
 		UserID:      userID,
 		ProblemID:   problemID,
+		MatchID:     matchID,
 		Language:    req.Language,
 		SourceCode:  req.SourceCode,
 		Status:      result.Status,
@@ -105,7 +115,7 @@ func (h *Handler) Submit(c *gin.Context) {
 		},
 	})
 	if err != nil {
-		httpx.WriteError(c, http.StatusInternalServerError, "could not save submission")
+		httpx.InternalError(c, "create submission error", err, "could not save submission")
 		return
 	}
 

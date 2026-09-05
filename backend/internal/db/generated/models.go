@@ -54,6 +54,62 @@ func (ns NullDifficulty) Value() (driver.Value, error) {
 	return string(ns.Difficulty), nil
 }
 
+type MatchStatus string
+
+const (
+	MatchStatusWaiting   MatchStatus = "waiting"
+	MatchStatusActive    MatchStatus = "active"
+	MatchStatusFinished  MatchStatus = "finished"
+	MatchStatusAbandoned MatchStatus = "abandoned"
+)
+
+func (e *MatchStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MatchStatus(s)
+	case string:
+		*e = MatchStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MatchStatus: %T", src)
+	}
+	return nil
+}
+
+type NullMatchStatus struct {
+	MatchStatus MatchStatus
+	Valid       bool // Valid is true if MatchStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMatchStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.MatchStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MatchStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMatchStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MatchStatus), nil
+}
+
+type Match struct {
+	ID          pgtype.UUID
+	ProblemID   pgtype.UUID
+	PlayerOneID pgtype.UUID
+	PlayerTwoID pgtype.UUID
+	WinnerID    pgtype.UUID
+	Status      MatchStatus
+	StartedAt   pgtype.Timestamptz
+	FinishedAt  pgtype.Timestamptz
+	CreatedAt   pgtype.Timestamptz
+}
+
 type Problem struct {
 	ID            pgtype.UUID
 	Title         string
@@ -63,6 +119,9 @@ type Problem struct {
 	TimeLimitMs   int32
 	MemoryLimitMb int32
 	CreatedAt     pgtype.Timestamptz
+	FunctionName  string
+	Params        []byte
+	ReturnType    string
 }
 
 type ProblemTag struct {
@@ -98,6 +157,7 @@ type Submission struct {
 	TotalTests      int32
 	ExecutionTimeMs pgtype.Int8
 	CreatedAt       pgtype.Timestamptz
+	MatchID         pgtype.UUID
 }
 
 type Tag struct {

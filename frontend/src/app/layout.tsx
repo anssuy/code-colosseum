@@ -5,6 +5,10 @@ import type { ReactNode } from "react";
 import { AuthProvider } from "@/providers/AuthProvider";
 import "./globals.css";
 
+import { Toaster } from "@/components/ui/toast";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { MatchProvider } from "@/providers/MatchProvider";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -26,8 +30,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       lang="en"
     >
-      <body className="flex min-h-full flex-col">
-        <AuthProvider>{children}</AuthProvider>
+      <body className="flex min-h-full flex-col font-geist-sans">
+        <TooltipProvider>
+          <AuthProvider>
+            <MatchProvider>
+              {children}
+              <Toaster />
+            </MatchProvider>
+          </AuthProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

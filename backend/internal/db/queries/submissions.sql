@@ -1,15 +1,6 @@
 -- name: CreateSubmission :one
-INSERT INTO submissions (
-    user_id,
-    problem_id,
-    language,
-    source_code,
-    status,
-    passed_tests,
-    total_tests,
-    execution_time_ms
-)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO submissions (user_id, problem_id, match_id, language, source_code, status, passed_tests, total_tests, execution_time_ms)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
 -- name: GetSubmissionByID :one

@@ -286,7 +286,19 @@
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": "on",
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              ["!:BUN:", ":NODE:"],
+              ":BLANK_LINE:",
+              ":PACKAGE:",
+              ":BLANK_LINE:",
+              [":ALIAS:", ":PATH:"],
+              { "type": true, "source": [":ALIAS:", ":PATH:"] }
+            ]
+          }
+        },
         "useSortedAttributes": "on",
         "useSortedInterfaceMembers": "on",
         "useSortedProperties": "on"
