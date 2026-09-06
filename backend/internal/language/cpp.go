@@ -9,8 +9,8 @@ import (
 const cppImage = "sandbox-cpp:latest"
 
 func cppType(t string) string {
-	if strings.HasSuffix(t, "[]") {
-		return "std::vector<" + cppType(strings.TrimSuffix(t, "[]")) + ">"
+	if before, ok := strings.CutSuffix(t, "[]"); ok {
+		return "std::vector<" + cppType(before) + ">"
 	}
 	switch t {
 	case "int":
@@ -42,8 +42,8 @@ func cppHarness(sig Signature, userCode string) string {
 
 	for i, p := range sig.Params {
 		varName := fmt.Sprintf("arg%d", i)
-		decls.WriteString(fmt.Sprintf("    %s %s = args[%d].get<%s>();\n",
-			cppType(p.Type), varName, i, cppType(p.Type)))
+		fmt.Fprintf(&decls, "    %s %s = args[%d].get<%s>();\n",
+			cppType(p.Type), varName, i, cppType(p.Type))
 		callArgs = append(callArgs, varName)
 	}
 

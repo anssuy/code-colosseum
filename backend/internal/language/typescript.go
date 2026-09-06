@@ -11,8 +11,8 @@ func typescriptRun(ctx context.Context, code string, cfg runConfig) (string, err
 }
 
 func typescriptType(t string) string {
-	if strings.HasSuffix(t, "[]") {
-		inner := typescriptType(strings.TrimSuffix(t, "[]"))
+	if before, ok := strings.CutSuffix(t, "[]"); ok {
+		inner := typescriptType(before)
 		return inner + "[]"
 	}
 	switch t {

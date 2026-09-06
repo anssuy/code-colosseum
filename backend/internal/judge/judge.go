@@ -93,7 +93,7 @@ func Run(ctx context.Context, lang, functionName string, params []language.Param
 }
 
 func jsonEqual(a, b string) bool {
-	var va, vb interface{}
+	var va, vb any
 	if err := json.Unmarshal([]byte(strings.TrimSpace(a)), &va); err != nil {
 		return false
 	}

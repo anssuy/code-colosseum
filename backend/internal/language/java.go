@@ -9,8 +9,8 @@ import (
 const javaImage = "sandbox-java:latest"
 
 func javaType(t string) string {
-	if strings.HasSuffix(t, "[]") {
-		return javaType(strings.TrimSuffix(t, "[]")) + "[]"
+	if before, ok := strings.CutSuffix(t, "[]"); ok {
+		return javaType(before) + "[]"
 	}
 	switch t {
 	case "int":

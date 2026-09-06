@@ -58,7 +58,7 @@ func (l *Lobby) tryPairPlayers() {
 
 	paired := make(map[string]bool)
 
-	for i := 0; i < len(entries); i++ {
+	for i := range entries {
 		a := entries[i]
 		if paired[a.UserID] {
 			continue

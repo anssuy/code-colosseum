@@ -60,6 +60,13 @@ var registry = map[string]langDef{
 		Image:         cppImage,
 		DockerContext: "internal/language/dockerfiles/cpp",
 	},
+	"go": {
+		Stub:          goStub,
+		Harness:       goHarness,
+		Run:           goRun,
+		Image:         goImage,
+		DockerContext: "internal/language/dockerfiles/go",
+	},
 }
 
 func Registry() map[string]langDef {

@@ -16,8 +16,8 @@ func pythonRun(ctx context.Context, code string, cfg runConfig) (string, error) 
 }
 
 func pythonType(t string) string {
-	if strings.HasSuffix(t, "[]") {
-		inner := pythonType(strings.TrimSuffix(t, "[]"))
+	if before, ok := strings.CutSuffix(t, "[]"); ok {
+		inner := pythonType(before)
 		return "List[" + inner + "]"
 	}
 	switch t {
