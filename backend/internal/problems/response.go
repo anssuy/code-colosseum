@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	dbgen "github.com/anssuy/code-colosseum/backend/internal/db/generated"
-	"github.com/anssuy/code-colosseum/backend/internal/stub"
+	"github.com/anssuy/code-colosseum/backend/internal/language"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -12,12 +12,6 @@ import (
 type ParamSpec struct {
 	Name string `json:"name" binding:"required"`
 	Type string `json:"type" binding:"required"`
-}
-
-type Stubs struct {
-	Python     string `json:"python"`
-	JavaScript string `json:"javascript"`
-	TypeScript string `json:"typescript"`
 }
 
 type ProblemResponse struct {
@@ -31,7 +25,7 @@ type ProblemResponse struct {
 	FunctionName  string             `json:"functionName"`
 	Params        []ParamSpec        `json:"params"`
 	ReturnType    string             `json:"returnType"`
-	Stubs         Stubs              `json:"stubs"`
+	Stubs         map[string]string  `json:"stubs"`
 	CreatedAt     pgtype.Timestamptz `json:"createdAt"`
 }
 
@@ -39,12 +33,12 @@ func ProblemResponseFrom(problem dbgen.Problem) ProblemResponse {
 	var params []ParamSpec
 	_ = json.Unmarshal(problem.Params, &params)
 
-	stubParams := make([]stub.Param, len(params))
+	stubParams := make([]language.Param, len(params))
 	for i, p := range params {
-		stubParams[i] = stub.Param{Name: p.Name, Type: p.Type}
+		stubParams[i] = language.Param{Name: p.Name, Type: p.Type}
 	}
 
-	sig := stub.Signature{
+	sig := language.Signature{
 		FunctionName: problem.FunctionName,
 		Params:       stubParams,
 		ReturnType:   problem.ReturnType,
@@ -61,11 +55,7 @@ func ProblemResponseFrom(problem dbgen.Problem) ProblemResponse {
 		FunctionName:  problem.FunctionName,
 		Params:        params,
 		ReturnType:    problem.ReturnType,
-		Stubs: Stubs{
-			Python:     stub.Python(sig),
-			JavaScript: stub.JavaScript(sig),
-			TypeScript: stub.TypeScript(sig),
-		},
-		CreatedAt: problem.CreatedAt,
+		Stubs:         language.Stubs(sig),
+		CreatedAt:     problem.CreatedAt,
 	}
 }

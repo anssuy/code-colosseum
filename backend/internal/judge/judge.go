@@ -8,8 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/anssuy/code-colosseum/backend/internal/harness"
-	"github.com/anssuy/code-colosseum/backend/internal/sandbox"
+	"github.com/anssuy/code-colosseum/backend/internal/language"
 )
 
 const (
@@ -31,33 +30,32 @@ type Result struct {
 	ExecutionTimeMS int64
 }
 
-func wrapCode(language, functionName, code string) (string, error) {
-	sig := harness.Signature{FunctionName: functionName}
+func wrapCode(lang, functionName string, params []language.Param, returnType, code string) (string, error) {
+	sig := language.Signature{
+		FunctionName: functionName,
+		Params:       params,
+		ReturnType:   returnType,
+	}
 
-	switch language {
-	case "python":
-		return harness.Python(sig, code), nil
-	case "javascript":
-		return harness.JavaScript(sig, code), nil
-	case "typescript":
-		return harness.TypeScript(sig, code), nil
-	default:
+	wrapped, ok := language.Harness(lang, sig, code)
+	if !ok {
 		return "", errors.New("unsupported language")
 	}
+	return wrapped, nil
 }
 
-func Run(ctx context.Context, language, functionName, code string, testCases []TestCase) Result {
+func Run(ctx context.Context, lang, functionName string, params []language.Param, returnType, code string, testCases []TestCase) Result {
 	result := Result{
 		Status:     Accepted,
 		TotalTests: int32(len(testCases)),
 	}
 
-	if err := checkImports(ctx, language, code); err != nil {
+	if err := checkImports(ctx, lang, code); err != nil {
 		result.Status = RuntimeError
 		return result
 	}
 
-	wrapped, err := wrapCode(language, functionName, code)
+	wrapped, err := wrapCode(lang, functionName, params, returnType, code)
 	if err != nil {
 		result.Status = RuntimeError
 		return result
@@ -66,12 +64,12 @@ func Run(ctx context.Context, language, functionName, code string, testCases []T
 	start := time.Now()
 
 	for _, tc := range testCases {
-		output, err := sandbox.Run(ctx, language, wrapped, tc.Input)
+		output, err := language.Run(ctx, lang, wrapped, tc.Input)
 
 		if err != nil {
 			log.Printf("judge error: %v\noutput: %s", err, output)
 
-			if errors.Is(err, sandbox.ErrTimeout) {
+			if errors.Is(err, language.ErrTimeout) {
 				result.Status = TimeLimitExceeded
 			} else {
 				result.Status = RuntimeError

@@ -1,6 +1,7 @@
 package submissions
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -8,7 +9,7 @@ import (
 	dbgen "github.com/anssuy/code-colosseum/backend/internal/db/generated"
 	"github.com/anssuy/code-colosseum/backend/internal/httpx"
 	"github.com/anssuy/code-colosseum/backend/internal/judge"
-	"github.com/anssuy/code-colosseum/backend/internal/sandbox"
+	"github.com/anssuy/code-colosseum/backend/internal/language"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
@@ -36,7 +37,7 @@ func (h *Handler) Submit(c *gin.Context) {
 		return
 	}
 
-	if !sandbox.IsSupported(req.Language) {
+	if !language.IsValid(req.Language) {
 		httpx.WriteError(c, http.StatusBadRequest, "unsupported language")
 		return
 	}
@@ -79,6 +80,17 @@ func (h *Handler) Submit(c *gin.Context) {
 		return
 	}
 
+	var rawParams []struct {
+		Name string `json:"name"`
+		Type string `json:"type"`
+	}
+	_ = json.Unmarshal(problem.Params, &rawParams)
+
+	params := make([]language.Param, len(rawParams))
+	for i, p := range rawParams {
+		params[i] = language.Param{Name: p.Name, Type: p.Type}
+	}
+
 	dbTestCases, err := h.queries.ListTestCasesForProblem(ctx, problemID)
 	if err != nil {
 		httpx.InternalError(c, "list test cases error", err, "could not load test cases")
@@ -98,7 +110,7 @@ func (h *Handler) Submit(c *gin.Context) {
 		}
 	}
 
-	result := judge.Run(ctx, req.Language, problem.FunctionName, req.SourceCode, testCases)
+	result := judge.Run(ctx, req.Language, problem.FunctionName, params, problem.ReturnType, req.SourceCode, testCases)
 
 	submission, err := h.queries.CreateSubmission(ctx, dbgen.CreateSubmissionParams{
 		UserID:      userID,

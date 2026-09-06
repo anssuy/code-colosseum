@@ -10,7 +10,7 @@ import (
 	dbgen "github.com/anssuy/code-colosseum/backend/internal/db/generated"
 	"github.com/anssuy/code-colosseum/backend/internal/elo"
 	"github.com/anssuy/code-colosseum/backend/internal/judge"
-	"github.com/anssuy/code-colosseum/backend/internal/sandbox"
+	"github.com/anssuy/code-colosseum/backend/internal/language"
 	"github.com/anssuy/code-colosseum/backend/internal/ws"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -24,6 +24,8 @@ type Room struct {
 	judgePool    *judge.Pool
 	testCases    []judge.TestCase
 	functionName string
+	params       []language.Param
+	returnType   string
 	hub          *ws.Hub
 	onFinish     func(playerOneID, playerTwoID string)
 	disconnected map[string]time.Time
@@ -56,6 +58,17 @@ func NewRoom(ctx context.Context, m dbgen.Match, queries *dbgen.Queries, pool *j
 		return nil, err
 	}
 
+	var rawParams []struct {
+		Name string `json:"name"`
+		Type string `json:"type"`
+	}
+	_ = json.Unmarshal(problem.Params, &rawParams)
+
+	params := make([]language.Param, len(rawParams))
+	for i, p := range rawParams {
+		params[i] = language.Param{Name: p.Name, Type: p.Type}
+	}
+
 	return &Room{
 		match:        m,
 		ready:        make(map[string]bool),
@@ -63,6 +76,8 @@ func NewRoom(ctx context.Context, m dbgen.Match, queries *dbgen.Queries, pool *j
 		judgePool:    pool,
 		testCases:    testCases,
 		functionName: problem.FunctionName,
+		params:       params,
+		returnType:   problem.ReturnType,
 		hub:          hub,
 		onFinish:     onFinish,
 		disconnected: make(map[string]time.Time),
@@ -79,16 +94,18 @@ func (r *Room) HandleReady(userID string) bool {
 	return r.ready[r.match.PlayerOneID.String()] && r.ready[r.match.PlayerTwoID.String()]
 }
 
-func (r *Room) HandleSubmit(userID, language, sourceCode string) error {
-	if !sandbox.IsSupported(language) {
+func (r *Room) HandleSubmit(userID, lang, sourceCode string) error {
+	if !language.IsValid(lang) {
 		return errors.New("unsupported language")
 	}
 
 	resultCh := make(chan judge.Result, 1)
 	r.judgePool.Submit(judge.Job{
 		Ctx:          context.Background(),
-		Language:     language,
+		Language:     lang,
 		FunctionName: r.functionName,
+		Params:       r.params,
+		ReturnType:   r.returnType,
 		Code:         sourceCode,
 		TestCases:    r.testCases,
 		ResultCh:     resultCh,
@@ -100,7 +117,7 @@ func (r *Room) HandleSubmit(userID, language, sourceCode string) error {
 			userID:     userID,
 			result:     result,
 			sourceCode: sourceCode,
-			language:   language,
+			language:   lang,
 		})
 	}()
 

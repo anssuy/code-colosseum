@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { apiFetch } from "@/lib/api";
+import { LANGUAGES, LanguageValue } from "@/lib/constants";
 import { useMatch } from "@/providers/MatchProvider";
 
 type MatchData = {
@@ -26,12 +27,6 @@ type MatchData = {
   };
 };
 
-type Stubs = {
-  python: string;
-  javascript: string;
-  typescript: string;
-};
-
 type ProblemResponse = {
   problem: {
     id: string;
@@ -40,7 +35,7 @@ type ProblemResponse = {
     difficulty: string;
     description: string;
     functionName: string;
-    stubs: Stubs;
+    stubs: Record<LanguageValue, string>;
   };
   testCases: TestCase[];
 };
@@ -52,20 +47,16 @@ type TestCase = {
   isSample: boolean;
 };
 
-const LANGUAGES = [
-  { value: "python", label: "Python" },
-  { value: "javascript", label: "JavaScript" },
-  { value: "typescript", label: "TypeScript" },
-];
-
 export default function MatchPage() {
   const { id } = useParams<{ id: string }>();
   const { matchStarted, lastResult, winnerId, abandoned, submit } = useMatch();
 
   const [data, setData] = useState<MatchData | null>(null);
   const [testCases, setTestCases] = useState<TestCase[]>([]);
-  const [stubs, setStubs] = useState<Stubs | null>(null);
-  const [language, setLanguage] = useState("python");
+  const [stubs, setStubs] = useState<Record<LanguageValue, string> | null>(
+    null,
+  );
+  const [language, setLanguage] = useState<LanguageValue>("python");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -89,7 +80,7 @@ export default function MatchPage() {
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage);
     if (stubs) {
-      setCode(stubs[newLanguage as keyof Stubs]);
+      setCode(stubs[newLanguage]);
     }
   };
 
@@ -200,7 +191,7 @@ export default function MatchPage() {
           </select>
 
           <button
-            className="rounded-lg bg-zinc-900 px-4 py-1.5 font-medium text-sm text-white transition hover:bg-zinc-800 disabled:opacity-50"
+            className="rounded-lg bg-zinc-900 px-4 py-1.5 font-medium text-sm text-white transition hover:bg-zinc-700 disabled:opacity-50"
             disabled={isFinished || isAbandoned}
             onClick={handleSubmit}
             type="button"

@@ -13,7 +13,6 @@ import (
 	"github.com/anssuy/code-colosseum/backend/internal/match"
 	"github.com/anssuy/code-colosseum/backend/internal/problems"
 	"github.com/anssuy/code-colosseum/backend/internal/problemtags"
-	"github.com/anssuy/code-colosseum/backend/internal/sandbox"
 	"github.com/anssuy/code-colosseum/backend/internal/submissions"
 	"github.com/anssuy/code-colosseum/backend/internal/tags"
 	"github.com/anssuy/code-colosseum/backend/internal/testcases"
@@ -76,8 +75,6 @@ func main() {
 	router.GET("/api/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
-
-	router.POST("/api/sandbox/run", sandbox.RunSandbox)
 
 	authRoutes := router.Group("/api/auth")
 	{
