@@ -27,7 +27,7 @@ type InboundMessage struct {
 
 type OutboundMessage struct {
 	Type    MessageType `json:"type"`
-	Payload interface{} `json:"payload"`
+	Payload any         `json:"payload"`
 }
 
 type SubmitPayload struct {

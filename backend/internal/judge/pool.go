@@ -1,11 +1,17 @@
 package judge
 
-import "context"
+import (
+	"context"
+
+	"github.com/anssuy/code-colosseum/backend/internal/language"
+)
 
 type Job struct {
 	Ctx          context.Context
 	Language     string
 	FunctionName string
+	Params       []language.Param
+	ReturnType   string
 	Code         string
 	TestCases    []TestCase
 	ResultCh     chan<- Result
@@ -27,7 +33,7 @@ func NewPool(workers int) *Pool {
 
 func (p *Pool) worker() {
 	for job := range p.jobs {
-		result := Run(job.Ctx, job.Language, job.FunctionName, job.Code, job.TestCases)
+		result := Run(job.Ctx, job.Language, job.FunctionName, job.Params, job.ReturnType, job.Code, job.TestCases)
 		job.ResultCh <- result
 	}
 }

@@ -3,16 +3,11 @@
 import { Editor } from "@monaco-editor/react";
 import { type SubmitEvent, useState } from "react";
 
+import { LANGUAGES, LanguageValue } from "@/lib/constants";
 import { runCode } from "@/lib/sandbox";
 
-const languages = [
-  { value: "javascript", label: "JavaScript" },
-  { value: "typescript", label: "TypeScript" },
-  { value: "python", label: "Python" },
-];
-
 export default function SandboxPage() {
-  const [language, setLanguage] = useState("javascript");
+  const [language, setLanguage] = useState<LanguageValue>("javascript");
   const [code, setCode] = useState('console.log("Hello!");');
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
@@ -50,7 +45,7 @@ export default function SandboxPage() {
               onChange={(event) => setLanguage(event.target.value)}
               value={language}
             >
-              {languages.map((lang) => (
+              {LANGUAGES.map((lang) => (
                 <option key={lang.value} value={lang.value}>
                   {lang.label}
                 </option>

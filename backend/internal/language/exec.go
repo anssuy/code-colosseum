@@ -1,4 +1,4 @@
-package sandbox
+package language
 
 import (
 	"bytes"
@@ -15,13 +15,6 @@ import (
 	"time"
 )
 
-const (
-	defaultTimeout  = 5 * time.Second
-	defaultMemoryMB = 128
-	defaultCPU      = "0.5"
-	maxOutputLen    = 64 * 1024 // 64KB
-)
-
 type runConfig struct {
 	timeout  time.Duration
 	memoryMB int
@@ -29,11 +22,35 @@ type runConfig struct {
 	stdin    string
 }
 
-func defaultRunConfig() runConfig {
-	return runConfig{
-		timeout:  defaultTimeout,
-		memoryMB: defaultMemoryMB,
-		cpu:      defaultCPU,
+const (
+	defaultTimeout  = 5 * time.Second
+	defaultMemoryMB = 128
+	defaultCPU      = "0.5"
+	maxOutputLen    = 64 * 1024 // 64KB
+)
+
+var ErrTimeout = errors.New("execution timed out")
+
+func defaultRunConfig(lang string) runConfig {
+	switch lang {
+	case "java":
+		return runConfig{
+			timeout:  15 * time.Second,
+			memoryMB: 256,
+			cpu:      "1.0",
+		}
+	case "cpp":
+		return runConfig{
+			timeout:  15 * time.Second,
+			memoryMB: 256,
+			cpu:      "1.0",
+		}
+	default:
+		return runConfig{
+			timeout:  defaultTimeout,
+			memoryMB: defaultMemoryMB,
+			cpu:      defaultCPU,
+		}
 	}
 }
 

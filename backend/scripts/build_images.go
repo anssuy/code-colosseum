@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
+
+	"github.com/anssuy/code-colosseum/backend/internal/language"
 )
 
 func build(tag, context string) {
@@ -16,6 +18,7 @@ func build(tag, context string) {
 }
 
 func main() {
-	build("sandbox-node:latest", "internal/docker/node")
-	build("sandbox-python:latest", "internal/docker/python")
+	for _, def := range language.Registry() {
+		build(def.Image, def.DockerContext)
+	}
 }
