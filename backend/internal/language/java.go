@@ -120,7 +120,5 @@ func javaGetter(t, source string) string {
 }
 
 func javaRun(ctx context.Context, code string, cfg runConfig) (string, error) {
-	return runInContainer(ctx, javaImage, "Main.java", code,
-		[]string{"sh", "-c", "javac -cp /opt/lib/json.jar -d /tmp Main.java && java -cp /tmp:/opt/lib/json.jar Main"},
-		cfg)
+	return runInContainer(ctx, javaImage, "Main.java", code, []string{"java", "-cp", "/opt/lib/json.jar", "Main.java"}, cfg)
 }

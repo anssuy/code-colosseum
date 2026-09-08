@@ -50,6 +50,8 @@ func cppHarness(sig Signature, userCode string) string {
 	return fmt.Sprintf(`#include <iostream>
 #include <vector>
 #include <string>
+#include <climits>
+#include <algorithm>
 #include "json.hpp"
 
 using json = nlohmann::json;
