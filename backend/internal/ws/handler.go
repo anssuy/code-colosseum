@@ -18,15 +18,15 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-type WsHandler struct {
+type Handler struct {
 	hub *Hub
 }
 
-func NewHandler(hub *Hub) *WsHandler {
-	return &WsHandler{hub: hub}
+func NewHandler(hub *Hub) *Handler {
+	return &Handler{hub: hub}
 }
 
-func (h *WsHandler) Connect(c *gin.Context) {
+func (h *Handler) Connect(c *gin.Context) {
 	userID, ok := auth.GetAuthenticatedUserID(c)
 	if !ok {
 		httpx.WriteError(c, http.StatusUnauthorized, "authentication required")

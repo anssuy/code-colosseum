@@ -245,6 +245,7 @@ func (r *Room) onSubmissionResult(res submissionResult) {
 		Type: MsgSubmissionResult,
 		Payload: SubmissionResultPayload{
 			SubmissionID: submission.ID.String(),
+			UserID:       res.userID,
 			Status:       submission.Status,
 			PassedTests:  submission.PassedTests,
 			TotalTests:   submission.TotalTests,

@@ -9,33 +9,36 @@ import {
   useState,
 } from "react";
 
-type SubmissionResult = {
-  submissionId: string;
-  status: string;
+import { useAuth } from "./AuthProvider";
+
+interface SubmissionResult {
   passedTests: number;
+  status: string;
+  submissionId: string;
   totalTests: number;
-};
+  userId: string;
+}
 
-type MatchContextValue = {
-  connected: boolean;
-  isQueued: boolean;
-  currentMatchId: string | null;
-  matchStarted: boolean;
-  lastResult: SubmissionResult | null;
-  winnerId: string | null;
+interface MatchContextValue {
   abandoned: boolean;
+  connected: boolean;
+  currentMatchId: string | null;
   error: string | null;
-
+  isQueued: boolean;
   joinQueue: () => void;
+  lastResult: SubmissionResult | null;
   leaveQueue: () => void;
+  matchStarted: boolean;
   sendReady: () => void;
   submit: (language: string, sourceCode: string) => void;
-};
+  winnerId: string | null;
+}
 
 const MatchContext = createContext<MatchContextValue | null>(null);
 
 export function MatchProvider({ children }: { children: ReactNode }) {
   const wsRef = useRef<WebSocket | null>(null);
+  const { user } = useAuth();
 
   const [connected, setConnected] = useState(false);
   const [isQueued, setIsQueued] = useState(false);
@@ -82,7 +85,9 @@ export function MatchProvider({ children }: { children: ReactNode }) {
           setMatchStarted(true);
           break;
         case "submission_result":
-          setLastResult(msg.payload);
+          if (msg.payload.userId === user?.id) {
+            setLastResult(msg.payload);
+          }
           break;
         case "match_finished":
           setWinnerId(msg.payload?.winnerId ?? null);
@@ -98,7 +103,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
 
     wsRef.current = ws;
     return ws;
-  }, []);
+  }, [user]);
 
   const send = useCallback(
     (type: string, payload: unknown = {}) => {

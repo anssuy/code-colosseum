@@ -10,7 +10,7 @@ type Hub struct {
 	mu            sync.RWMutex
 	conns         map[string]*Conn
 	incoming      chan InboundEvent
-	handlers      []Handler
+	handlers      []MessageHandler
 	connectFns    []func(userID string)
 	disconnectFns []func(userID string)
 }
@@ -56,7 +56,7 @@ func (h *Hub) OnDisconnect(fn func(userID string)) {
 	h.disconnectFns = append(h.disconnectFns, fn)
 }
 
-func (h *Hub) OnMessage(fn Handler) {
+func (h *Hub) OnMessage(fn MessageHandler) {
 	h.handlers = append(h.handlers, fn)
 }
 
