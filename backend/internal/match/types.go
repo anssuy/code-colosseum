@@ -41,6 +41,7 @@ type MatchFoundPayload struct {
 
 type SubmissionResultPayload struct {
 	SubmissionID string `json:"submissionId"`
+	UserID       string `json:"userId"`
 	Status       string `json:"status"`
 	PassedTests  int32  `json:"passedTests"`
 	TotalTests   int32  `json:"totalTests"`

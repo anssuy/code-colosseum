@@ -5,4 +5,4 @@ type InboundEvent struct {
 	Data   []byte
 }
 
-type Handler func(userID string, data []byte)
+type MessageHandler func(userID string, data []byte)
