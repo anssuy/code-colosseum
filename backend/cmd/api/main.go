@@ -116,7 +116,13 @@ func main() {
 	}
 
 	router.GET("/api/ws", auth.Middleware(tokenManager), wsHandler.Connect)
-	router.GET("/api/matches/:id", auth.Middleware(tokenManager), matchHandler.Get)
+
+	matchRoutes := router.Group("/api/matches")
+	{
+		matchRoutes.GET("", auth.Middleware(tokenManager), matchHandler.List)
+		matchRoutes.GET("/active", auth.Middleware(tokenManager), matchHandler.GetActive)
+		matchRoutes.GET("/:id", auth.Middleware(tokenManager), matchHandler.Get)
+	}
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

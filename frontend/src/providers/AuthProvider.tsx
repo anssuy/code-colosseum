@@ -14,7 +14,7 @@ import {
   logout as logoutRequest,
   register as registerRequest,
   type User,
-} from "@/lib/auth";
+} from "@/lib/api/auth";
 
 type AuthContextValue = {
   user: User | null;

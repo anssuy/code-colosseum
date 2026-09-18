@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
 
 export class ApiError extends Error {
   constructor(
@@ -14,6 +14,23 @@ async function readResponse(response: Response) {
   if (response.status === 204) return null;
   return response.json().catch(() => null);
 }
+
+let refreshPromise: Promise<boolean> | null = null;
+
+const refreshSession = async () => {
+  if (!refreshPromise) {
+    refreshPromise = fetch(`${API_URL}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((response) => response.ok)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
+};
 
 export async function apiFetch<T>(
   path: string,
@@ -33,18 +50,16 @@ export async function apiFetch<T>(
   });
 
   if (response.status === 401 && retryOnUnauthorized) {
-    const refreshResponse = await fetch(`${API_URL}/api/auth/refresh`, {
-      method: "POST",
-      credentials: "include",
-    });
-
-    if (refreshResponse.ok) return apiFetch<T>(path, options, false);
+    if (await refreshSession()) {
+      return apiFetch<T>(path, options, false);
+    }
   }
 
   const data = await readResponse(response);
 
   if (!response.ok) {
     const error = data as { error?: string } | null;
+
     throw new ApiError(error?.error ?? "Request failed", response.status);
   }
 

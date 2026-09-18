@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/anssuy/code-colosseum/backend/internal/auth"
 	dbgen "github.com/anssuy/code-colosseum/backend/internal/db/generated"
 	"github.com/anssuy/code-colosseum/backend/internal/httpx"
 	"github.com/anssuy/code-colosseum/backend/internal/problems"
@@ -13,16 +14,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Handler struct {
-	queries *dbgen.Queries
+type listMatchesQuery struct {
+	httpx.PaginationQuery
 }
 
-type MatchResponse struct {
-	ID          pgtype.UUID       `json:"id"`
-	ProblemID   pgtype.UUID       `json:"problemId"`
-	PlayerOneID pgtype.UUID       `json:"playerOneId"`
-	PlayerTwoID pgtype.UUID       `json:"playerTwoId"`
-	Status      dbgen.MatchStatus `json:"status"`
+type Handler struct {
+	queries *dbgen.Queries
 }
 
 func NewHandler(queries *dbgen.Queries) *Handler {
@@ -35,7 +32,21 @@ func (h *Handler) Get(c *gin.Context) {
 		return
 	}
 
-	dbMatch, err := h.queries.GetMatch(c.Request.Context(), matchID)
+	userIDString, ok := auth.GetAuthenticatedUserID(c)
+	if !ok {
+		httpx.WriteError(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	var userID pgtype.UUID
+	if err := userID.Scan(userIDString); err != nil {
+		httpx.WriteError(c, http.StatusUnauthorized, "invalid user")
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	dbMatch, err := h.queries.GetMatch(ctx, matchID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			httpx.WriteError(c, http.StatusNotFound, "match not found")
@@ -45,7 +56,12 @@ func (h *Handler) Get(c *gin.Context) {
 		return
 	}
 
-	problem, err := h.queries.GetProblemByID(c.Request.Context(), dbMatch.ProblemID)
+	if dbMatch.PlayerOneID != userID && dbMatch.PlayerTwoID != userID {
+		httpx.WriteError(c, http.StatusForbidden, "you are not part of this match")
+		return
+	}
+
+	problem, err := h.queries.GetProblemByID(ctx, dbMatch.ProblemID)
 	if err != nil {
 		httpx.InternalError(c, "get problem for match error", err, "could not load problem")
 		return
@@ -62,5 +78,84 @@ func (h *Handler) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"match":   matchResponse,
 		"problem": problems.ProblemResponseFrom(problem),
+	})
+}
+
+func (h *Handler) GetActive(c *gin.Context) {
+	userIDString, ok := auth.GetAuthenticatedUserID(c)
+	if !ok {
+		httpx.WriteError(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	var userID pgtype.UUID
+	if err := userID.Scan(userIDString); err != nil {
+		httpx.WriteError(c, http.StatusUnauthorized, "invalid user")
+		return
+	}
+
+	dbMatch, err := h.queries.GetActiveMatchForUser(c.Request.Context(), userID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusOK, gin.H{"match": nil})
+			return
+		}
+		httpx.InternalError(c, "get active match error", err, "could not check active match")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"match": MatchResponseFrom(dbMatch)})
+}
+
+func (h *Handler) List(c *gin.Context) {
+	var query listMatchesQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		httpx.WriteError(c, http.StatusBadRequest, "invalid pagination params")
+		return
+	}
+
+	userIDString, ok := auth.GetAuthenticatedUserID(c)
+	if !ok {
+		httpx.WriteError(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	var userID pgtype.UUID
+	if err := userID.Scan(userIDString); err != nil {
+		httpx.WriteError(c, http.StatusUnauthorized, "invalid user")
+		return
+	}
+
+	var (
+		matches []dbgen.Match
+		total   int64
+		err     error
+	)
+
+	matches, err = h.queries.ListMatchesForUser(
+		c.Request.Context(),
+		dbgen.ListMatchesForUserParams{
+			PlayerOneID: userID,
+			Limit:       query.Limit,
+			Offset:      query.Offset,
+		},
+	)
+	if err != nil {
+		httpx.InternalError(c, "list matches error", err, "could not list matches")
+		return
+	}
+
+	total, err = h.queries.CountMatchesForUser(c.Request.Context(), userID)
+
+	data := make([]MatchResponse, len(matches))
+	for i, m := range matches {
+		data[i] = MatchResponseFrom(m)
+	}
+
+	c.JSON(http.StatusOK, httpx.PaginationResponse[MatchResponse]{
+		Data:       data,
+		TotalCount: total,
+		Limit:      query.Limit,
+		Offset:     query.Offset,
 	})
 }
