@@ -105,6 +105,31 @@ func (q *Queries) FinishMatch(ctx context.Context, arg FinishMatchParams) (Match
 	return i, err
 }
 
+const getActiveMatchForUser = `-- name: GetActiveMatchForUser :one
+SELECT id, problem_id, player_one_id, player_two_id, winner_id, status, started_at, finished_at, created_at FROM matches
+WHERE (player_one_id = $1 OR player_two_id = $1)
+  AND status IN ('waiting', 'active')
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+func (q *Queries) GetActiveMatchForUser(ctx context.Context, playerOneID pgtype.UUID) (Match, error) {
+	row := q.db.QueryRow(ctx, getActiveMatchForUser, playerOneID)
+	var i Match
+	err := row.Scan(
+		&i.ID,
+		&i.ProblemID,
+		&i.PlayerOneID,
+		&i.PlayerTwoID,
+		&i.WinnerID,
+		&i.Status,
+		&i.StartedAt,
+		&i.FinishedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getMatch = `-- name: GetMatch :one
 SELECT id, problem_id, player_one_id, player_two_id, winner_id, status, started_at, finished_at, created_at FROM matches
 WHERE id = $1

@@ -1,5 +1,8 @@
 "use client";
 
+import { Flame, Medal, TrendingUp, Trophy } from "lucide-react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/providers/AuthProvider";
 
 export default function DashboardPage() {
@@ -11,17 +14,66 @@ export default function DashboardPage() {
     );
   }
 
-  return (
-    <main className="flex items-center justify-center p-6 text-zinc-900">
-      <section className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-8 shadow-lg">
-        <h1 className="mb-6 font-bold text-2xl">Welcome, {user.username}</h1>
+  const totalMatches = user.wins + user.losses;
+  const winRate =
+    totalMatches > 0 ? Math.round((user.wins / totalMatches) * 100) : 0;
 
-        <div className="mb-6 space-y-2 text-zinc-700">
-          <p>Email: {user.email}</p>
-          <p>Rating: {user.rating}</p>
-          <p>Wins: {user.wins}</p>
-          <p>Losses: {user.losses}</p>
-        </div>
+  const stats = [
+    {
+      label: "Rating",
+      value: user.rating,
+      icon: TrendingUp,
+    },
+    {
+      label: "Wins",
+      value: user.wins,
+      icon: Trophy,
+    },
+    {
+      label: "Losses",
+      value: user.losses,
+      icon: Medal,
+    },
+    {
+      label: "Win Rate",
+      value: `${winRate}%`,
+      icon: Flame,
+    },
+  ];
+
+  return (
+    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-6 text-zinc-900">
+      <Card>
+        <CardContent className="flex items-center justify-between p-8">
+          <div className="space-y-2">
+            <p className="font-medium text-sm text-zinc-500">
+              Ready to compete?
+            </p>
+
+            <h1 className="font-bold text-3xl">Find your next opponent</h1>
+
+            <p className="text-zinc-600">
+              Match against another player and put your rating on the line.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {stats.map(({ label, value, icon: Icon }) => (
+          <Card key={label}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="font-medium text-sm text-zinc-500">
+                {label}
+              </CardTitle>
+              <Icon className="size-4 text-zinc-500" />
+            </CardHeader>
+
+            <CardContent>
+              <p className="font-bold text-2xl">{value}</p>
+            </CardContent>
+          </Card>
+        ))}
       </section>
     </main>
   );

@@ -1,11 +1,13 @@
 "use client";
 
 import { CircleUserRound, Search } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { toast } from "@/components/ui/toast";
+import { getActiveMatch } from "@/lib/api/matches";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMatch } from "@/providers/MatchProvider";
 
@@ -16,28 +18,47 @@ export default function Header() {
 
   const router = useRouter();
   const toastIdRef = useRef<string | number | null>(null);
+  const activeMatchToastIdRef = useRef<string | number | null>(null);
   const readySentRef = useRef(false);
 
   useEffect(() => {
-    if (isQueued && !toastIdRef.current) {
-      toastIdRef.current = toast.add({
-        title: "Searching for a match...",
-        description: "This may take a moment",
+    getActiveMatch().then((matchData) => {
+      if (!matchData?.match) return;
+
+      toast.close();
+
+      activeMatchToastIdRef.current = toast.add({
+        title: "You have an active match",
+        description: "You already have a match in progress.",
         type: "loading",
-        onClose: () => {
-          if (isQueued) leaveQueue();
-        },
         actionProps: {
-          children: "Cancel",
-          onClick: () => leaveQueue(),
+          children: "Go to match",
+          onClick: () => {
+            toast.close(activeMatchToastIdRef.current?.toString());
+            activeMatchToastIdRef.current = null;
+            router.push(`/matches/${matchData.match.id}`);
+          },
         },
       });
-    }
+    });
+  }, [router]);
 
-    if (!isQueued && toastIdRef.current) {
-      toast.close(toastIdRef.current.toString());
-      toastIdRef.current = null;
-    }
+  useEffect(() => {
+    if (!isQueued) return;
+
+    toastIdRef.current = toast.add({
+      title: "Searching for a match...",
+      description: "This may take a moment",
+      type: "loading",
+      actionProps: { children: "Cancel", onClick: () => leaveQueue() },
+    });
+
+    return () => {
+      if (toastIdRef.current) {
+        toast.close(toastIdRef.current.toString());
+        toastIdRef.current = null;
+      }
+    };
   }, [isQueued, leaveQueue]);
 
   useEffect(() => {
@@ -71,7 +92,7 @@ export default function Header() {
       </div>
 
       <button
-        className="flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 font-medium text-sm text-white transition hover:bg-zinc-800 active:scale-[0.98]"
+        className="flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 font-medium text-sm text-white transition hover:bg-zinc-800 hover:shadow-sm hover:ring-zinc-800/20 active:scale-[0.98]"
         disabled={isQueued}
         onClick={handleFindMatch}
         type="button"
@@ -80,16 +101,17 @@ export default function Header() {
         {isQueued ? "Searching..." : "Find Match"}
       </button>
 
-      <button
+      <Link
         aria-label="Profile"
         className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-zinc-100"
+        href="/dashboard"
         type="button"
       >
         <CircleUserRound className="size-5 text-zinc-600" />
         <span className="font-medium text-sm text-zinc-800">
           {user?.username}
         </span>
-      </button>
+      </Link>
     </header>
   );
 }

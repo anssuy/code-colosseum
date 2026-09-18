@@ -6,46 +6,10 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { apiFetch } from "@/lib/api";
+import { getMatch, MatchData } from "@/lib/api/matches";
+import { getProblem, TestCase } from "@/lib/api/problems";
 import { LANGUAGES, LanguageValue } from "@/lib/constants";
 import { useMatch } from "@/providers/MatchProvider";
-
-type MatchData = {
-  match: {
-    id: string;
-    status: string;
-    playerOneId: string;
-    playerTwoId: string;
-    winnerId: string | null;
-  };
-  problem: {
-    id: string;
-    title: string;
-    slug: string;
-    difficulty: string;
-    description: string;
-  };
-};
-
-type ProblemResponse = {
-  problem: {
-    id: string;
-    title: string;
-    slug: string;
-    difficulty: string;
-    description: string;
-    functionName: string;
-    stubs: Record<LanguageValue, string>;
-  };
-  testCases: TestCase[];
-};
-
-type TestCase = {
-  id: string;
-  input: string;
-  expectedOutput: string;
-  isSample: boolean;
-};
 
 export default function MatchPage() {
   const { id } = useParams<{ id: string }>();
@@ -61,18 +25,15 @@ export default function MatchPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiFetch<MatchData>(`/api/matches/${id}`)
+    getMatch(id)
       .then((matchData) => {
         setData(matchData);
-        return apiFetch<ProblemResponse>(
-          `/api/problems/slug/${matchData.problem.slug}`,
-        );
+        return getProblem(matchData.problem.slug);
       })
-      .then((p) => {
-        console.log(p);
-        setTestCases(p.testCases);
-        setStubs(p.problem.stubs);
-        setCode(p.problem.stubs.python);
+      .then((problem) => {
+        setTestCases(problem.testCases);
+        setStubs(problem.problem.stubs);
+        setCode(problem.problem.stubs.python);
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -112,7 +73,21 @@ export default function MatchPage() {
         </div>
 
         <div className="prose prose-sm max-w-none">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <ReactMarkdown
+            components={{
+              code({ children, className, ...props }) {
+                return (
+                  <span
+                    className={`rounded bg-zinc-100 px-1 py-px font-mono text-zinc-800 ${className ?? ""}`}
+                    {...props}
+                  >
+                    {children}
+                  </span>
+                );
+              },
+            }}
+            remarkPlugins={[remarkGfm]}
+          >
             {data.problem.description}
           </ReactMarkdown>
         </div>

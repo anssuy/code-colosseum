@@ -1,6 +1,6 @@
 "use client";
 
-import { History, ListChecks, Search, Trophy } from "lucide-react";
+import { History, Trophy } from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -17,19 +17,11 @@ import {
 
 const navigation = [
   {
-    label: "Play",
-    items: [{ title: "Find Match", url: "/play", icon: Search }],
-  },
-  {
     label: "Compete",
     items: [
       { title: "Match History", url: "/history", icon: History },
       { title: "Leaderboard", url: "/leaderboard", icon: Trophy },
     ],
-  },
-  {
-    label: "Problems",
-    items: [{ title: "All Problems", url: "/problems", icon: ListChecks }],
   },
 ];
 

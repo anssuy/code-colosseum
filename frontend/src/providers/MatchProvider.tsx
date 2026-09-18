@@ -9,15 +9,8 @@ import {
   useState,
 } from "react";
 
+import { SubmissionResult } from "@/lib/api/matches";
 import { useAuth } from "./AuthProvider";
-
-interface SubmissionResult {
-  passedTests: number;
-  status: string;
-  submissionId: string;
-  totalTests: number;
-  userId: string;
-}
 
 interface MatchContextValue {
   abandoned: boolean;
@@ -152,9 +145,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
 }
 
 export function useMatch() {
-  const ctx = useContext(MatchContext);
-  if (!ctx) {
-    throw new Error("useMatch must be used within a MatchProvider");
-  }
-  return ctx;
+  const context = useContext(MatchContext);
+  if (!context) throw new Error("useMatch must be used inside MatchProvider");
+  return context;
 }

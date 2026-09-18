@@ -7,6 +7,13 @@ RETURNING *;
 SELECT * FROM matches
 WHERE id = $1;
 
+-- name: GetActiveMatchForUser :one
+SELECT * FROM matches
+WHERE (player_one_id = $1 OR player_two_id = $1)
+  AND status IN ('waiting', 'active')
+ORDER BY created_at DESC
+LIMIT 1;
+
 -- name: StartMatch :one
 UPDATE matches
 SET status = 'active', started_at = now()
