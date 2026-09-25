@@ -10,6 +10,7 @@ import (
 	"github.com/anssuy/code-colosseum/backend/internal/db"
 	dbgen "github.com/anssuy/code-colosseum/backend/internal/db/generated"
 	"github.com/anssuy/code-colosseum/backend/internal/judge"
+	"github.com/anssuy/code-colosseum/backend/internal/leaderboard"
 	"github.com/anssuy/code-colosseum/backend/internal/match"
 	"github.com/anssuy/code-colosseum/backend/internal/problems"
 	"github.com/anssuy/code-colosseum/backend/internal/problemtags"
@@ -123,6 +124,9 @@ func main() {
 		matchRoutes.GET("/active", auth.Middleware(tokenManager), matchHandler.GetActive)
 		matchRoutes.GET("/:id", auth.Middleware(tokenManager), matchHandler.Get)
 	}
+
+	leaderboardHandler := leaderboard.NewHandler(queries)
+	router.GET("/api/leaderboard", leaderboardHandler.GetLeaderboard)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

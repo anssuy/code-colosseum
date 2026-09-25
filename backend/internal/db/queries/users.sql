@@ -69,3 +69,9 @@ RETURNING *;
 -- name: DeleteUser :exec
 DELETE FROM users
 WHERE id = $1;
+
+-- name: ListLeaderboard :many
+SELECT id, username, rating, wins, losses
+FROM users
+ORDER BY rating DESC, wins DESC, username ASC
+LIMIT $1 OFFSET $2;

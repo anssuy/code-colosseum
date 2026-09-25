@@ -172,6 +172,52 @@ func (q *Queries) IncrementUserWins(ctx context.Context, id pgtype.UUID) (User, 
 	return i, err
 }
 
+const listLeaderboard = `-- name: ListLeaderboard :many
+SELECT id, username, rating, wins, losses
+FROM users
+ORDER BY rating DESC, wins DESC, username ASC
+LIMIT $1 OFFSET $2
+`
+
+type ListLeaderboardParams struct {
+	Limit  int32
+	Offset int32
+}
+
+type ListLeaderboardRow struct {
+	ID       pgtype.UUID
+	Username string
+	Rating   int32
+	Wins     int32
+	Losses   int32
+}
+
+func (q *Queries) ListLeaderboard(ctx context.Context, arg ListLeaderboardParams) ([]ListLeaderboardRow, error) {
+	rows, err := q.db.Query(ctx, listLeaderboard, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListLeaderboardRow
+	for rows.Next() {
+		var i ListLeaderboardRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Rating,
+			&i.Wins,
+			&i.Losses,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT id, username, email, password_hash, rating, wins, losses, created_at
 FROM users
