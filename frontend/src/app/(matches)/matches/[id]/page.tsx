@@ -1,6 +1,7 @@
 "use client";
 
 import Editor from "@monaco-editor/react";
+import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -10,6 +11,7 @@ import { getMatch, MatchData } from "@/lib/api/matches";
 import { getProblem, TestCase } from "@/lib/api/problems";
 import { LANGUAGES, LanguageValue } from "@/lib/constants";
 import { useMatch } from "@/providers/MatchProvider";
+import MatchEndDialog from "../../_components/MatchEndDialog";
 
 export default function MatchPage() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +25,7 @@ export default function MatchPage() {
   const [language, setLanguage] = useState<LanguageValue>("python");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     getMatch(id)
@@ -38,14 +41,17 @@ export default function MatchPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    if (lastResult) setSubmitting(false);
+  }, [lastResult]);
+
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage);
-    if (stubs) {
-      setCode(stubs[newLanguage]);
-    }
+    if (stubs) setCode(stubs[newLanguage]);
   };
 
   const handleSubmit = () => {
+    setSubmitting(true);
     submit(language, code);
   };
 
@@ -63,128 +69,139 @@ export default function MatchPage() {
   const matchWinnerId = winnerId || data.match.winnerId;
 
   return (
-    <div className="grid h-[calc(100vh-4rem)] grid-cols-2 gap-4 p-4">
-      <div className="flex flex-col gap-4 overflow-y-auto rounded-lg border border-zinc-200 p-4">
-        <div>
-          <h1 className="font-semibold text-lg">{data.problem.title}</h1>
-          <span className="text-sm text-zinc-500">
-            {data.problem.difficulty}
-          </span>
-        </div>
-
-        <div className="prose prose-sm max-w-none">
-          <ReactMarkdown
-            components={{
-              code({ children, className, ...props }) {
-                return (
-                  <span
-                    className={`rounded bg-zinc-100 px-1 py-px font-mono text-zinc-800 ${className ?? ""}`}
-                    {...props}
-                  >
-                    {children}
-                  </span>
-                );
-              },
-            }}
-            remarkPlugins={[remarkGfm]}
-          >
-            {data.problem.description}
-          </ReactMarkdown>
-        </div>
-
-        {testCases.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <h2 className="font-medium text-sm text-zinc-700">
-              Sample Test Cases
-            </h2>
-            {testCases.map((tc, i) => (
-              <div
-                className="rounded-lg border border-zinc-200 p-3 text-sm"
-                key={tc.id}
-              >
-                <div className="mb-2 font-medium text-zinc-500">
-                  Example {i + 1}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <div className="text-xs text-zinc-400">Input</div>
-                    <pre className="whitespace-pre-wrap rounded bg-zinc-50 p-2 font-mono text-xs">
-                      {tc.input}
-                    </pre>
-                  </div>
-                  <div>
-                    <div className="text-xs text-zinc-400">Output</div>
-                    <pre className="whitespace-pre-wrap rounded bg-zinc-50 p-2 font-mono text-xs">
-                      {tc.expectedOutput}
-                    </pre>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-auto rounded-lg bg-zinc-50 p-3 text-sm">
-          {!isActive && !isFinished && !isAbandoned && (
-            <span className="text-zinc-500">Waiting for opponent...</span>
-          )}
-          {isActive && !isFinished && !isAbandoned && (
-            <span className="text-green-600">Match in progress</span>
-          )}
-          {isFinished && (
-            <span className="font-medium">
-              Match finished — winner: {matchWinnerId}
+    <>
+      <div className="grid h-[calc(100vh-4rem)] grid-cols-2 gap-4 p-4">
+        <div className="flex flex-col gap-4 overflow-y-auto rounded-lg border border-zinc-200 p-4">
+          <div>
+            <h1 className="font-semibold text-lg">{data.problem.title}</h1>
+            <span className="text-sm text-zinc-500">
+              {data.problem.difficulty}
             </span>
-          )}
-          {isAbandoned && (
-            <span className="text-zinc-500">Match abandoned</span>
-          )}
-        </div>
-
-        {lastResult && (
-          <div className="rounded-lg border border-zinc-200 p-3 text-sm">
-            <div className="font-medium">{lastResult.status}</div>
-            <div className="text-zinc-500">
-              {lastResult.passedTests}/{lastResult.totalTests} tests passed
-            </div>
           </div>
-        )}
-      </div>
 
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <select
-            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm"
-            onChange={(e) => handleLanguageChange(e.target.value)}
-            value={language}
-          >
-            {LANGUAGES.map((l) => (
-              <option key={l.value} value={l.value}>
-                {l.label}
-              </option>
-            ))}
-          </select>
+          <div className="prose prose-sm max-w-none">
+            <ReactMarkdown
+              components={{
+                code({ children, className, ...props }) {
+                  return (
+                    <span
+                      className={`rounded bg-zinc-100 px-1 py-px font-mono text-zinc-800 ${className ?? ""}`}
+                      {...props}
+                    >
+                      {children}
+                    </span>
+                  );
+                },
+              }}
+              remarkPlugins={[remarkGfm]}
+            >
+              {data.problem.description}
+            </ReactMarkdown>
+          </div>
 
-          <button
-            className="rounded-lg bg-zinc-900 px-4 py-1.5 font-medium text-sm text-white transition hover:bg-zinc-700 disabled:opacity-50"
-            disabled={isFinished || isAbandoned}
-            onClick={handleSubmit}
-            type="button"
-          >
-            Submit
-          </button>
+          {testCases.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <h2 className="font-medium text-sm text-zinc-700">
+                Sample Test Cases
+              </h2>
+              {testCases.map((tc, i) => (
+                <div
+                  className="rounded-lg border border-zinc-200 p-3 text-sm"
+                  key={tc.id}
+                >
+                  <div className="mb-2 font-medium text-zinc-500">
+                    Example {i + 1}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-xs text-zinc-400">Input</div>
+                      <pre className="wrap-break-word max-h-80 overflow-auto whitespace-pre-wrap rounded bg-zinc-50 p-2 font-mono text-xs">
+                        {tc.input}
+                      </pre>
+                    </div>
+                    <div>
+                      <div className="text-xs text-zinc-400">Output</div>
+                      <pre className="wrap-break-word max-h-80 overflow-auto whitespace-pre-wrap rounded bg-zinc-50 p-2 font-mono text-xs">
+                        {tc.expectedOutput}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-auto rounded-lg bg-zinc-50 p-3 text-sm">
+            {!isActive && !isFinished && !isAbandoned && (
+              <span className="text-zinc-500">Waiting for opponent...</span>
+            )}
+            {isActive && !isFinished && !isAbandoned && (
+              <span className="text-green-600">Match in progress</span>
+            )}
+            {isFinished && (
+              <span className="font-medium">
+                Match finished — winner: {matchWinnerId}
+              </span>
+            )}
+            {isAbandoned && (
+              <span className="text-zinc-500">Match abandoned</span>
+            )}
+          </div>
+
+          {lastResult && (
+            <div className="rounded-lg border border-zinc-200 p-3 text-sm">
+              <div className="font-medium">{lastResult.status}</div>
+              <div className="text-zinc-500">
+                {lastResult.passedTests}/{lastResult.totalTests} tests passed
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="flex-1 overflow-hidden rounded-lg border border-zinc-200">
-          <Editor
-            language={language}
-            onChange={(v) => setCode(v ?? "")}
-            options={{ minimap: { enabled: false }, fontSize: 14 }}
-            theme="vs-light"
-            value={code}
-          />
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <select
+              className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm"
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              value={language}
+            >
+              {LANGUAGES.map((l) => (
+                <option key={l.value} value={l.value}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+
+            <button
+              className="min-h-8 min-w-19.5 rounded-lg bg-zinc-900 px-4 py-1.5 font-medium text-sm text-white transition hover:bg-zinc-700 disabled:opacity-50"
+              disabled={isFinished || isAbandoned || submitting}
+              onClick={handleSubmit}
+              type="button"
+            >
+              {submitting ? (
+                <Loader2 className="mx-auto size-4.5 animate-spin" />
+              ) : (
+                "Submit"
+              )}
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-hidden rounded-lg border border-zinc-200">
+            <Editor
+              language={language}
+              onChange={(v) => setCode(v ?? "")}
+              options={{ minimap: { enabled: false }, fontSize: 14 }}
+              theme="vs-light"
+              value={code}
+            />
+          </div>
         </div>
       </div>
-    </div>
+      <MatchEndDialog
+        abandoned={isAbandoned}
+        open={isFinished || isAbandoned}
+        winnerId={matchWinnerId}
+      />
+    </>
   );
 }
