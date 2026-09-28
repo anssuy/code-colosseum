@@ -34,5 +34,9 @@ export const apiFetch = <T>(
     },
   })
     .then((res) => res.json())
-    .then((data) => data as T);
+    .then((data) => {
+      // biome-ignore lint/suspicious/noExplicitAny: <>
+      if ("error" in (data as any)) throw new Error((data as any).error);
+      return data as T;
+    });
 };

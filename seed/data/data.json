@@ -1,0 +1,1430 @@
+[
+  {
+    "problem": {
+      "title": "Maximum Subarray Sum with One Deletion",
+      "slug": "maximum-subarray-sum-with-one-deletion",
+      "difficulty": "medium",
+      "description": "## Description\n\nGiven an array of integers `nums`, find the maximum sum of a non-empty subarray with at most one element deleted.\n\nNote that the subarray after deletion must still be non-empty.\n\n### Parameters\n- `nums` (`int[]`): An array of integers.\n\n### Return Value\n- `int`: The maximum possible sum of a non-empty subarray after optionally deleting at most one element.\n\n### Constraints\n- 1 <= len(nums) <= 10^5\n- -10^4 <= nums[i] <= 10^4\n\n### Examples\n\n**Example 1:**\n- Input: `nums = [1, -2, 0, 3]`\n- Output: `4`\n- Explanation: We can delete `-2` to get `[1, 0, 3]` which has a sum of `4`.\n\n**Example 2:**\n- Input: `nums = [1, -2, -2, 3]`\n- Output: `3`\n- Explanation: We can choose `[3]` or delete one `-2` from `[1, -2, 3]` to get sum `3`.",
+      "functionName": "maximumSum",
+      "params": [
+        {
+          "name": "nums",
+          "type": "int[]"
+        }
+      ],
+      "returnType": "int"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "dynamic-programming",
+        "name": "Dynamic Programming"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[1,-2,0,3]]",
+        "expectedOutput": "4",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[1,-2,-2,3]]",
+        "expectedOutput": "3",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[-1,-1,-1,-1]]",
+        "expectedOutput": "-1",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[5]]",
+        "expectedOutput": "5",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[2,1,-2,3]]",
+        "expectedOutput": "6",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[-2,-3,4,-1,-2,1,5,-3]]",
+        "expectedOutput": "9",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[10,-20,10,10]]",
+        "expectedOutput": "20",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[-5,10,-1,2,-10,11]]",
+        "expectedOutput": "22",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Container with Most Water",
+      "slug": "container-with-most-water",
+      "difficulty": "medium",
+      "description": "You are given an integer array `height` of length `n`. There are `n` vertical lines drawn such that the two endpoints of the `i`-th line are `(i, 0)` and `(i, height[i])`.\n\nFind two lines that together with the x-axis form a container, such that the container contains the most water.\n\nReturn the maximum amount of water a container can store.\n\n**Parameters:**\n- `height`: An array of integers representing the height of vertical lines.\n\n**Return Value:**\n- An integer representing the maximum area of water that can be trapped.\n\n**Constraints:**\n- `2 <= len(height) <= 10^5`\n- `0 <= height[i] <= 10^4`",
+      "functionName": "maxArea",
+      "params": [
+        {
+          "name": "height",
+          "type": "int[]"
+        }
+      ],
+      "returnType": "int"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "two-pointers",
+        "name": "Two Pointers"
+      },
+      {
+        "slug": "greedy",
+        "name": "Greedy"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[1,8,6,2,5,4,8,3,7]]",
+        "expectedOutput": "49",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[1,1]]",
+        "expectedOutput": "1",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[4,3,2,1,4]]",
+        "expectedOutput": "16",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[1,2,1]]",
+        "expectedOutput": "2",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[1,1,1,1,1,1]]",
+        "expectedOutput": "5",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[0,2]]",
+        "expectedOutput": "0",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[2,3,4,5,18,17,6]]",
+        "expectedOutput": "17",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[10,9,8,7,6,5,4,3,2,1]]",
+        "expectedOutput": "25",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Search in Rotated Sorted Array",
+      "slug": "search-in-rotated-sorted-array",
+      "difficulty": "medium",
+      "description": "There is an integer array `nums` sorted in ascending order (with distinct values).\n\nPrior to being passed to your function, `nums` is possibly rotated at an unknown pivot index `k` (`1 <= k < len(nums)`) such that the resulting array is `[nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]` (0-indexed).\n\nGiven the array `nums` after the possible rotation and an integer `target`, return the index of `target` if it is in `nums`, or `-1` if it is not in `nums`.\n\nYou must write an algorithm with `O(log n)` runtime complexity.\n\n**Parameters:**\n- `nums`: A rotated sorted array of distinct integers.\n- `target`: The target integer to search for.\n\n**Return Value:**\n- An integer representing the 0-based index of `target`, or `-1` if not found.\n\n**Constraints:**\n- `1 <= len(nums) <= 5000`\n- `-10^4 <= nums[i] <= 10^4`\n- All values of `nums` are unique.\n- `nums` is an ascending array that may have been rotated.\n- `-10^4 <= target <= 10^4`",
+      "functionName": "search",
+      "params": [
+        {
+          "name": "nums",
+          "type": "int[]"
+        },
+        {
+          "name": "target",
+          "type": "int"
+        }
+      ],
+      "returnType": "int"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "binary-search",
+        "name": "Binary Search"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[4,5,6,7,0,1,2],0]",
+        "expectedOutput": "4",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[4,5,6,7,0,1,2],3]",
+        "expectedOutput": "-1",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[1],0]",
+        "expectedOutput": "-1",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[1],1]",
+        "expectedOutput": "0",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[3,1],1]",
+        "expectedOutput": "1",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[5,1,3],5]",
+        "expectedOutput": "0",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[4,5,6,7,8,1,2,3],8]",
+        "expectedOutput": "4",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[9,1,2,3,4,5,6,7,8],5]",
+        "expectedOutput": "5",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Minimum Window Substring",
+      "slug": "minimum-window-substring",
+      "difficulty": "hard",
+      "description": "Given two strings `s` and `t` of lengths `m` and `n` respectively, return the minimum window substring of `s` such that every character in `t` (including duplicates) is included in the window. If there is no such substring, return the empty string `\"\"`.\n\n**Parameters:**\n- `s`: The source string.\n- `t`: The target string containing characters to cover.\n\n**Return Value:**\n- A string representing the smallest window substring of `s` containing all characters from `t`.\n\n**Constraints:**\n- `1 <= len(s), len(t) <= 10^5`\n- `s` and `t` consist of uppercase and lowercase English letters.",
+      "functionName": "minWindow",
+      "params": [
+        {
+          "name": "s",
+          "type": "string"
+        },
+        {
+          "name": "t",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    },
+    "tags": [
+      {
+        "slug": "strings",
+        "name": "Strings"
+      },
+      {
+        "slug": "hash-table",
+        "name": "Hash Table"
+      },
+      {
+        "slug": "sliding-window",
+        "name": "Sliding Window"
+      },
+      {
+        "slug": "two-pointers",
+        "name": "Two Pointers"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[\"ADOBECODEBANC\",\"ABC\"]",
+        "expectedOutput": "\"BANC\"",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[\"a\",\"a\"]",
+        "expectedOutput": "\"a\"",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[\"a\",\"aa\"]",
+        "expectedOutput": "\"\"",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[\"ab\",\"b\"]",
+        "expectedOutput": "\"b\"",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[\"bba\",\"ab\"]",
+        "expectedOutput": "\"ba\"",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[\"aaaaaaaaaaaabbbbbbbbbbbb\",\"abc\"]",
+        "expectedOutput": "\"\"",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[\"cabwefgewcwaefgcf\",\"cae\"]",
+        "expectedOutput": "\"cwae\"",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[\"ask_not_what_your_country_can_do_for_you\",\"can\"]",
+        "expectedOutput": "\"can\"",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Group Anagrams",
+      "slug": "group-anagrams",
+      "difficulty": "medium",
+      "description": "Given an array of strings `strs`, group the anagrams together. You can return the answer in any order.\n\nAn **Anagram** is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.\n\n**Parameters:**\n- `strs`: An array of strings.\n\n**Return Value:**\n- A 2D array of strings where each outer element is a list of grouped anagrams.\n\n**Constraints:**\n- `1 <= len(strs) <= 10^4`\n- `0 <= len(strs[i]) <= 100`\n- `strs[i]` consists of lowercase English letters.",
+      "functionName": "groupAnagrams",
+      "params": [
+        {
+          "name": "strs",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "string[][]"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "strings",
+        "name": "Strings"
+      },
+      {
+        "slug": "hash-table",
+        "name": "Hash Table"
+      },
+      {
+        "slug": "sorting",
+        "name": "Sorting"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]]",
+        "expectedOutput": "[[\"eat\",\"tea\",\"ate\"],[\"tan\",\"nat\"],[\"bat\"]]",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[\"\"\"]]",
+        "expectedOutput": "[[\"\"\"]]",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[\"a\"]]",
+        "expectedOutput": "[[\"a\"]]",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[\"ab\",\"ba\",\"abc\",\"cba\",\"bca\"]]",
+        "expectedOutput": "[[\"ab\",\"ba\"],[\"abc\",\"cba\",\"bca\"]]",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[\"aaa\",\"aaa\",\"aaa\"]]",
+        "expectedOutput": "[[\"aaa\",\"aaa\",\"aaa\"]]",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[\"cat\",\"dog\",\"act\",\"god\",\"tca\"]]",
+        "expectedOutput": "[[\"cat\",\"act\",\"tca\"],[\"dog\",\"god\"]]",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[\"a\",\"b\",\"c\"]]",
+        "expectedOutput": "[[\"a\"],[\"b\"],[\"c\"]]",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[\"stop\",\"pots\",\"tops\",\"spot\"]]",
+        "expectedOutput": "[[\"stop\",\"pots\",\"tops\",\"spot\"]]",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Move Zeroes",
+      "slug": "move-zeroes",
+      "difficulty": "easy",
+      "description": "Given an integer array `nums`, move all zero values to the end of the array while preserving the relative order of all non-zero values.\n\nModify the array in place and return it.\n\n### Parameters\n- `nums`: Integer array to modify.\n\n### Return value\nReturn the modified array.\n\n### Constraints\n- `1 <= len(nums) <= 10^5`\n- `-10^9 <= nums[i] <= 10^9`",
+      "functionName": "moveZeroes",
+      "params": [
+        {
+          "name": "nums",
+          "type": "int[]"
+        }
+      ],
+      "returnType": "int[]"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "two-pointers",
+        "name": "Two Pointers"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[0,1,0,3,12]]",
+        "expectedOutput": "[1,3,12,0,0]",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[0,0,1]]",
+        "expectedOutput": "[1,0,0]",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[1,2,3]]",
+        "expectedOutput": "[1,2,3]",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[0]]",
+        "expectedOutput": "[0]",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[1,0]]",
+        "expectedOutput": "[1,0]",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[0,0,0]]",
+        "expectedOutput": "[0,0,0]",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[4,0,5,0,0,-2,7]]",
+        "expectedOutput": "[4,5,-2,7,0,0,0]",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[0,-1,0,-1,0,2]]",
+        "expectedOutput": "[-1,-1,2,0,0,0]",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Longest Consecutive Sequence",
+      "slug": "longest-consecutive-sequence",
+      "difficulty": "medium",
+      "description": "Given an unsorted integer array `nums`, return the length of the longest sequence of consecutive integers.\n\nThe consecutive integers do not need to appear next to each other in the input array.\n\n### Parameters\n- `nums`: Unsorted integer array.\n\n### Return value\nReturn the maximum length of a consecutive sequence.\n\n### Constraints\n- `0 <= len(nums) <= 10^5`\n- `-10^9 <= nums[i] <= 10^9`",
+      "functionName": "longestConsecutive",
+      "params": [
+        {
+          "name": "nums",
+          "type": "int[]"
+        }
+      ],
+      "returnType": "int"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "hash-table",
+        "name": "Hash Table"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[100,4,200,1,3,2]]",
+        "expectedOutput": "4",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[0,3,7,2,5,8,4,6,0,1]]",
+        "expectedOutput": "9",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[1,0,1,2]]",
+        "expectedOutput": "3",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[]]",
+        "expectedOutput": "0",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[5]]",
+        "expectedOutput": "1",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[1,2,2,3,4,4,5]]",
+        "expectedOutput": "5",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[-3,-2,-1,0,2,3]]",
+        "expectedOutput": "4",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[10,5,6,7,8,20,9,11]]",
+        "expectedOutput": "7",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Binary Search",
+      "slug": "binary-search",
+      "difficulty": "easy",
+      "description": "Given a sorted integer array `nums` and integer `target`, return the index of `target` if it exists. Otherwise, return `-1`.\n\n### Parameters\n- `nums`: Sorted integer array in ascending order.\n- `target`: Integer value to search for.\n\n### Return value\nReturn the index of `target`, or `-1` if it does not exist.\n\n### Constraints\n- `0 <= len(nums) <= 10^5`\n- `-10^9 <= nums[i] <= 10^9`\n- `-10^9 <= target <= 10^9`\n- `nums` is sorted in ascending order.\n- All values in `nums` are distinct.",
+      "functionName": "binarySearch",
+      "params": [
+        {
+          "name": "nums",
+          "type": "int[]"
+        },
+        {
+          "name": "target",
+          "type": "int"
+        }
+      ],
+      "returnType": "int"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "binary-search",
+        "name": "Binary Search"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[-1,0,3,5,9,12],9]",
+        "expectedOutput": "4",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[-1,0,3,5,9,12],2]",
+        "expectedOutput": "-1",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[5],5]",
+        "expectedOutput": "0",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[1,2,3,4,5],1]",
+        "expectedOutput": "0",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[1,2,3,4,5],5]",
+        "expectedOutput": "4",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[],10]",
+        "expectedOutput": "-1",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[-10,-5,0,5,10],-10]",
+        "expectedOutput": "0",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[-10,-5,0,5,10],10]",
+        "expectedOutput": "4",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Merge Intervals",
+      "slug": "merge-intervals",
+      "difficulty": "medium",
+      "description": "Given an array of intervals where each interval is represented as `[start, end]`, merge all overlapping intervals.\n\nReturn the resulting intervals in ascending order of their start values.\n\n### Parameters\n- `intervals`: Array of integer intervals.\n\n### Return value\nReturn the merged intervals.\n\n### Constraints\n- `1 <= len(intervals) <= 10^4`\n- `0 <= intervals[i][0] <= intervals[i][1] <= 10^9`",
+      "functionName": "mergeIntervals",
+      "params": [
+        {
+          "name": "intervals",
+          "type": "int[][]"
+        }
+      ],
+      "returnType": "int[][]"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "sorting",
+        "name": "Sorting"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[[1,3],[2,6],[8,10],[15,18]]]",
+        "expectedOutput": "[[1,6],[8,10],[15,18]]",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[[1,4],[4,5]]]",
+        "expectedOutput": "[[1,5]]",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[[1,4],[0,2],[3,5]]]",
+        "expectedOutput": "[[0,5]]",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[[1,2]]]",
+        "expectedOutput": "[[1,2]]",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[[1,2],[3,4]]]",
+        "expectedOutput": "[[1,2],[3,4]]",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[[1,10],[2,3],[4,5],[6,9]]]",
+        "expectedOutput": "[[1,10]]",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[[5,7],[1,3],[2,6],[10,12]]]",
+        "expectedOutput": "[[1,7],[10,12]]",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[[1,1],[1,1],[1,1]]]",
+        "expectedOutput": "[[1,1]]",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Group Anagrams",
+      "slug": "group-anagrams",
+      "difficulty": "medium",
+      "description": "Given an array of strings `strs`, group strings that are anagrams of each other.\n\nTwo strings are anagrams when they contain the same characters with the same frequencies in any order.\n\nThe order of groups and the order of strings inside groups do not matter for correctness.\n\n### Parameters\n- `strs`: Array of lowercase English strings.\n\n### Return value\nReturn groups of anagrams.\n\n### Constraints\n- `1 <= len(strs) <= 10^4`\n- `0 <= len(strs[i]) <= 100`\n- `strs[i]` contains lowercase English letters only.",
+      "functionName": "groupAnagrams",
+      "params": [
+        {
+          "name": "strs",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "string[][]"
+    },
+    "tags": [
+      {
+        "slug": "strings",
+        "name": "Strings"
+      },
+      {
+        "slug": "hash-table",
+        "name": "Hash Table"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]]",
+        "expectedOutput": "[[\"eat\",\"tea\",\"ate\"],[\"tan\",\"nat\"],[\"bat\"]]",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[\"\"]]",
+        "expectedOutput": "[[\"\"]]",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[\"a\"]]",
+        "expectedOutput": "[[\"a\"]]",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[\"abc\",\"bca\",\"cab\"]]",
+        "expectedOutput": "[[\"abc\",\"bca\",\"cab\"]]",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[\"abc\",\"def\",\"ghi\"]]",
+        "expectedOutput": "[[\"abc\"],[\"def\"],[\"ghi\"]]",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[\"listen\",\"silent\",\"enlist\",\"google\"]]",
+        "expectedOutput": "[[\"listen\",\"silent\",\"enlist\"],[\"google\"]]",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[\"aa\",\"aa\",\"ab\",\"ba\"]]",
+        "expectedOutput": "[[\"aa\",\"aa\"],[\"ab\",\"ba\"]]",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[\"z\",\"y\",\"x\",\"z\"]]",
+        "expectedOutput": "[[\"z\",\"z\"],[\"y\"],[\"x\"]]",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Maximum Subarray Sum",
+      "slug": "maximum-subarray-sum",
+      "difficulty": "medium",
+      "description": "Given an integer array `nums`, find the contiguous subarray with the largest sum.\n\nReturn the maximum possible sum of any non-empty contiguous subarray.\n\n### Parameters\n- `nums`: Integer array.\n\n### Return value\nReturn the maximum subarray sum.\n\n### Constraints\n- `1 <= len(nums) <= 10^5`\n- `-10^4 <= nums[i] <= 10^4`",
+      "functionName": "maxSubarraySum",
+      "params": [
+        {
+          "name": "nums",
+          "type": "int[]"
+        }
+      ],
+      "returnType": "int"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "dynamic-programming",
+        "name": "Dynamic Programming"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[-2,1,-3,4,-1,2,1,-5,4]]",
+        "expectedOutput": "6",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[1]]",
+        "expectedOutput": "1",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[5,4,-1,7,8]]",
+        "expectedOutput": "23",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[-1,-2,-3]]",
+        "expectedOutput": "-1",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[1,-1,1,-1,1]]",
+        "expectedOutput": "1",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[-5,4,-1,7,-8,3]]",
+        "expectedOutput": "10",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[8,-19,5,-4,20]]",
+        "expectedOutput": "21",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[-2,-1]]",
+        "expectedOutput": "-1",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Climbing Stairs",
+      "slug": "climbing-stairs",
+      "difficulty": "easy",
+      "description": "You are climbing a staircase with `n` steps. Each move can climb either 1 step or 2 steps.\n\nReturn the number of distinct ways to reach the top.\n\n### Parameters\n- `n`: Number of steps.\n\n### Return value\nReturn the number of distinct ways to reach the top.\n\n### Constraints\n- `1 <= n <= 45`",
+      "functionName": "climbStairs",
+      "params": [
+        {
+          "name": "n",
+          "type": "int"
+        }
+      ],
+      "returnType": "int"
+    },
+    "tags": [
+      {
+        "slug": "dynamic-programming",
+        "name": "Dynamic Programming"
+      },
+      {
+        "slug": "recursion",
+        "name": "Recursion"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[2]",
+        "expectedOutput": "2",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[3]",
+        "expectedOutput": "3",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[5]",
+        "expectedOutput": "8",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[1]",
+        "expectedOutput": "1",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[4]",
+        "expectedOutput": "5",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[10]",
+        "expectedOutput": "89",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[20]",
+        "expectedOutput": "10946",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[45]",
+        "expectedOutput": "1836311903",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Top K Frequent Elements",
+      "slug": "top-k-frequent-elements",
+      "difficulty": "medium",
+      "description": "Given an integer array `nums` and integer `k`, return the `k` most frequent elements.\n\nThe answer may be returned in any order. The input contains at least `k` distinct values.\n\n### Parameters\n- `nums`: Integer array.\n- `k`: Number of distinct elements to return.\n\n### Return value\nReturn an array containing the `k` most frequent distinct values.\n\n### Constraints\n- `1 <= len(nums) <= 10^5`\n- `1 <= k <= number of distinct values in nums`\n- `-10^4 <= nums[i] <= 10^4`\n- Frequencies of returned values are uniquely determined for test cases.",
+      "functionName": "topKFrequent",
+      "params": [
+        {
+          "name": "nums",
+          "type": "int[]"
+        },
+        {
+          "name": "k",
+          "type": "int"
+        }
+      ],
+      "returnType": "int[]"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "hash-table",
+        "name": "Hash Table"
+      },
+      {
+        "slug": "sorting",
+        "name": "Sorting"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[1,1,1,2,2,3],2]",
+        "expectedOutput": "[1,2]",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[1],1]",
+        "expectedOutput": "[1]",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[4,4,4,5,5,6,6,6,6],2]",
+        "expectedOutput": "[6,4]",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[1,2,3,4],2]",
+        "expectedOutput": "[1,2]",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[7,7,8,8,8,9],1]",
+        "expectedOutput": "[8]",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[-1,-1,-2,-2,-2,3],2]",
+        "expectedOutput": "[-2,-1]",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[5,5,5,4,4,3,3,3,3],3]",
+        "expectedOutput": "[3,5,4]",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[10,10,20,20,20,30,30,30,30,30],1]",
+        "expectedOutput": "[30]",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Evaluate Reverse Polish Notation",
+      "slug": "evaluate-reverse-polish-notation",
+      "difficulty": "medium",
+      "description": "Given an array of tokens representing an arithmetic expression in Reverse Polish Notation, evaluate the expression and return its integer result.\n\nValid operators are `+`, `-`, `*`, and `/`. Division truncates toward zero.\n\n### Parameters\n- `tokens`: Tokens representing the expression. Each token is either an integer or an operator.\n\n### Return value\nReturn the evaluated integer result.\n\n### Constraints\n- `1 <= len(tokens) <= 10^4`\n- Every expression is valid.\n- Intermediate results fit within signed 32-bit integers.\n- Division by zero never occurs.",
+      "functionName": "evalRPN",
+      "params": [
+        {
+          "name": "tokens",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "int"
+    },
+    "tags": [
+      {
+        "slug": "stack",
+        "name": "Stack"
+      },
+      {
+        "slug": "strings",
+        "name": "Strings"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[\"2\",\"1\",\"+\",\"3\",\"*\"]]",
+        "expectedOutput": "9",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[\"4\",\"13\",\"5\",\"/\",\"+\"]]",
+        "expectedOutput": "6",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[\"10\",\"6\",\"9\",\"3\",\"+\",\"-11\",\"*\",\"/\",\"*\",\"17\",\"+\",\"5\",\"+\"]]",
+        "expectedOutput": "22",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[\"3\"]]",
+        "expectedOutput": "3",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[\"5\",\"2\",\"-\"]]",
+        "expectedOutput": "3",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[\"7\",\"3\",\"/\"]]",
+        "expectedOutput": "2",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[\"-7\",\"3\",\"/\"]]",
+        "expectedOutput": "-2",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[\"2\",\"3\",\"4\",\"*\",\"+\"]]",
+        "expectedOutput": "14",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "House Robber",
+      "slug": "house-robber",
+      "difficulty": "medium",
+      "description": "You are given an integer array `nums` where `nums[i]` represents the amount of money stored in the `i`-th house. Adjacent houses cannot both be robbed.\n\nReturn the maximum amount of money that can be robbed without robbing two adjacent houses.\n\n### Parameters\n- `nums`: Non-negative integer array representing house values.\n\n### Return value\nReturn the maximum amount that can be robbed.\n\n### Constraints\n- `1 <= len(nums) <= 100`\n- `0 <= nums[i] <= 10^4`",
+      "functionName": "rob",
+      "params": [
+        {
+          "name": "nums",
+          "type": "int[]"
+        }
+      ],
+      "returnType": "int"
+    },
+    "tags": [
+      {
+        "slug": "dynamic-programming",
+        "name": "Dynamic Programming"
+      },
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[1,2,3,1]]",
+        "expectedOutput": "4",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[2,7,9,3,1]]",
+        "expectedOutput": "12",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[2,1,1,2]]",
+        "expectedOutput": "4",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[1]]",
+        "expectedOutput": "1",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[0]]",
+        "expectedOutput": "0",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[5,1,1,5]]",
+        "expectedOutput": "10",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[10,0,0,10,0,10]]",
+        "expectedOutput": "20",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[6,7,1,30,8,2,4]]",
+        "expectedOutput": "41",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Daily Temperatures",
+      "slug": "daily-temperatures",
+      "difficulty": "medium",
+      "description": "Given an integer array `temperatures`, return an array where `answer[i]` is the number of days you must wait after day `i` to encounter a strictly warmer temperature. If no warmer day exists, set `answer[i]` to `0`.\n\n### Parameters\n- `temperatures`: Daily temperature values.\n\n### Return value\nReturn the required waiting time for every day.\n\n### Constraints\n- `1 <= len(temperatures) <= 10^5`\n- `-100 <= temperatures[i] <= 100`",
+      "functionName": "dailyTemperatures",
+      "params": [
+        {
+          "name": "temperatures",
+          "type": "int[]"
+        }
+      ],
+      "returnType": "int[]"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "stack",
+        "name": "Stack"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[73,74,75,71,69,72,76,73]]",
+        "expectedOutput": "[1,1,4,2,1,1,0,0]",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[30,40,50,60]]",
+        "expectedOutput": "[1,1,1,0]",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[30,60,90]]",
+        "expectedOutput": "[1,1,0]",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[90]]",
+        "expectedOutput": "[0]",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[90,80,70,60]]",
+        "expectedOutput": "[0,0,0,0]",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[70,70,71]]",
+        "expectedOutput": "[2,1,0]",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[50,40,60,30,35,34,70]]",
+        "expectedOutput": "[2,1,4,1,2,1,0]",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[-5,-4,-6,-3]]",
+        "expectedOutput": "[1,2,1,0]",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Rotate Array",
+      "slug": "rotate-array",
+      "difficulty": "medium",
+      "description": "Given an integer array `nums` and integer `k`, rotate the array to the right by `k` positions.\n\nReturn the rotated array.\n\n### Parameters\n- `nums`: Integer array to rotate.\n- `k`: Number of positions to rotate to the right.\n\n### Return value\nReturn the rotated array.\n\n### Constraints\n- `1 <= len(nums) <= 10^5`\n- `0 <= k <= 10^9`\n- `-10^9 <= nums[i] <= 10^9`",
+      "functionName": "rotateArray",
+      "params": [
+        {
+          "name": "nums",
+          "type": "int[]"
+        },
+        {
+          "name": "k",
+          "type": "int"
+        }
+      ],
+      "returnType": "int[]"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "two-pointers",
+        "name": "Two Pointers"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[1,2,3,4,5,6,7],3]",
+        "expectedOutput": "[5,6,7,1,2,3,4]",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[-1,-100,3,99],2]",
+        "expectedOutput": "[3,99,-1,-100]",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[1,2],1]",
+        "expectedOutput": "[2,1]",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[1,2,3],0]",
+        "expectedOutput": "[1,2,3]",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[1,2,3],3]",
+        "expectedOutput": "[1,2,3]",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[1,2,3],4]",
+        "expectedOutput": "[3,1,2]",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[1],1000000000]",
+        "expectedOutput": "[1]",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[1,2,3,4],6]",
+        "expectedOutput": "[3,4,1,2]",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  },
+  {
+    "problem": {
+      "title": "Flood Fill",
+      "slug": "flood-fill",
+      "difficulty": "easy",
+      "description": "Given an integer matrix `image`, a starting cell `(sr, sc)`, and a replacement color `color`, perform a flood fill.\n\nReplace the starting cell and every horizontally or vertically connected cell with the same original color with `color`.\n\n### Parameters\n- `image`: Matrix of non-negative integer colors.\n- `sr`: Starting row index.\n- `sc`: Starting column index.\n- `color`: Replacement color.\n\n### Return value\nReturn the modified image.\n\n### Constraints\n- `1 <= number of rows <= 50`\n- `1 <= number of columns <= 50`\n- `0 <= image[i][j] <= 10^4`\n- `0 <= sr < number of rows`\n- `0 <= sc < number of columns`\n- `0 <= color <= 10^4`",
+      "functionName": "floodFill",
+      "params": [
+        {
+          "name": "image",
+          "type": "int[][]"
+        },
+        {
+          "name": "sr",
+          "type": "int"
+        },
+        {
+          "name": "sc",
+          "type": "int"
+        },
+        {
+          "name": "color",
+          "type": "int"
+        }
+      ],
+      "returnType": "int[][]"
+    },
+    "tags": [
+      {
+        "slug": "arrays",
+        "name": "Arrays"
+      },
+      {
+        "slug": "graph",
+        "name": "Graph"
+      },
+      {
+        "slug": "recursion",
+        "name": "Recursion"
+      }
+    ],
+    "testCases": [
+      {
+        "input": "[[[1,1,1],[1,1,0],[1,0,1]],1,1,2]",
+        "expectedOutput": "[[2,2,2],[2,2,0],[2,0,1]]",
+        "isSample": true,
+        "ord": 0
+      },
+      {
+        "input": "[[[0,0,0],[0,0,0]],0,0,2]",
+        "expectedOutput": "[[2,2,2],[2,2,2]]",
+        "isSample": true,
+        "ord": 1
+      },
+      {
+        "input": "[[[1,1],[1,1]],0,0,1]",
+        "expectedOutput": "[[1,1],[1,1]]",
+        "isSample": true,
+        "ord": 2
+      },
+      {
+        "input": "[[[1,2,1],[2,1,2],[1,2,1]],1,1,3]",
+        "expectedOutput": "[[1,2,1],[2,3,2],[1,2,1]]",
+        "isSample": false,
+        "ord": 3
+      },
+      {
+        "input": "[[[1]],0,0,5]",
+        "expectedOutput": "[[5]]",
+        "isSample": false,
+        "ord": 4
+      },
+      {
+        "input": "[[[1,1,2],[1,2,2],[2,2,1]],0,0,9]",
+        "expectedOutput": "[[9,9,2],[9,2,2],[2,2,1]]",
+        "isSample": false,
+        "ord": 5
+      },
+      {
+        "input": "[[[3,3,3],[3,4,3],[3,3,3]],1,1,5]",
+        "expectedOutput": "[[3,3,3],[3,5,3],[3,3,3]]",
+        "isSample": false,
+        "ord": 6
+      },
+      {
+        "input": "[[[1,1,1],[1,0,1],[1,1,1]],1,1,2]",
+        "expectedOutput": "[[1,1,1],[1,2,1],[1,1,1]]",
+        "isSample": false,
+        "ord": 7
+      }
+    ]
+  }
+]
