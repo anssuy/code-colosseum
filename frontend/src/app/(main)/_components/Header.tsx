@@ -1,14 +1,8 @@
 "use client";
 
-import {CircleUserRound, LogOut, Search} from "lucide-react";
+import { CircleUserRound, LogOut, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
-
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { toast } from "@/components/ui/toast";
-import { getActiveMatch } from "@/lib/api/matches";
-import { useAuth } from "@/providers/AuthProvider";
-import { useMatch } from "@/providers/MatchProvider";
 
 import {
   DropdownMenu,
@@ -16,16 +10,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { toast } from "@/components/ui/toast";
+import { getActiveMatch } from "@/lib/api/matches";
+import { useAuth } from "@/providers/AuthProvider";
+import { useMatch } from "@/providers/MatchProvider";
 
 export default function Header() {
   const { user, logout } = useAuth();
-  const { isQueued, currentMatchId, joinQueue, leaveQueue, sendReady } =
-    useMatch();
+  const {
+    isQueued,
+    currentMatchId,
+    matchFound,
+    joinQueue,
+    leaveQueue,
+    sendReady,
+    consumeMatchFound,
+  } = useMatch();
 
   const router = useRouter();
+
   const toastIdRef = useRef<string | number | null>(null);
   const activeMatchToastIdRef = useRef<string | number | null>(null);
-  const readySentRef = useRef(false);
 
   useEffect(() => {
     getActiveMatch().then((matchData) => {
@@ -56,20 +62,25 @@ export default function Header() {
       title: "Searching for a match...",
       description: "This may take a moment",
       type: "loading",
-      actionProps: { children: "Cancel", onClick: () => leaveQueue() },
-      onClose: () => leaveQueue()
+      actionProps: {
+        children: "Cancel",
+        onClick: () => leaveQueue(),
+      },
+      onClose: () => leaveQueue(),
     });
 
     return () => {
-      if (toastIdRef.current) {
-        toast.close(toastIdRef.current.toString());
-        toastIdRef.current = null;
-      }
+      if (!toastIdRef.current) return;
+
+      toast.close(toastIdRef.current.toString());
+      toastIdRef.current = null;
     };
   }, [isQueued, leaveQueue]);
 
   useEffect(() => {
-    if (currentMatchId && toastIdRef.current) {
+    if (!matchFound || !currentMatchId) return;
+
+    if (toastIdRef.current) {
       toast.update(toastIdRef.current.toString(), {
         type: "success",
         title: "Match found!",
@@ -77,22 +88,15 @@ export default function Header() {
       toastIdRef.current = null;
     }
 
-    if (currentMatchId && !readySentRef.current) {
-      readySentRef.current = true;
-      sendReady();
-      router.push(`/matches/${currentMatchId}`);
-    }
-
-    if (!currentMatchId) {
-      readySentRef.current = false;
-    }
-  }, [currentMatchId, sendReady, router]);
+    consumeMatchFound();
+    sendReady();
+    router.push(`/matches/${currentMatchId}`);
+  }, [matchFound, currentMatchId, consumeMatchFound, sendReady, router]);
 
   const handleFindMatch = async () => {
     const matchData = await getActiveMatch();
 
     if (matchData?.match) {
-
       activeMatchToastIdRef.current = toast.add({
         title: "You have an active match",
         description: "You already have a match in progress.",
@@ -107,7 +111,7 @@ export default function Header() {
         },
         onClose: () => {
           activeMatchToastIdRef.current = null;
-        }
+        },
       });
 
       return;
@@ -128,7 +132,7 @@ export default function Header() {
       </div>
 
       <button
-        className="flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 font-medium text-sm text-white transition hover:bg-zinc-800 hover:shadow-sm hover:ring-zinc-800/20 active:scale-[0.98]"
+        className="flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 font-medium text-sm text-white transition hover:bg-zinc-800 hover:shadow-sm hover:ring-zinc-800/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         disabled={isQueued}
         onClick={handleFindMatch}
         type="button"
@@ -139,15 +143,15 @@ export default function Header() {
 
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <button
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-zinc-100"
-              type="button"
+          <a
+            className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-zinc-100"
+            type="button"
           >
             <CircleUserRound className="size-5 text-zinc-600" />
             <span className="font-medium text-sm text-zinc-800">
-        {user?.username}
-      </span>
-          </button>
+              {user?.username}
+            </span>
+          </a>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">

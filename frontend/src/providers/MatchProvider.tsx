@@ -15,12 +15,14 @@ import { useAuth } from "./AuthProvider";
 interface MatchContextValue {
   abandoned: boolean;
   connected: boolean;
+  consumeMatchFound: () => void;
   currentMatchId: string | null;
   error: string | null;
   isQueued: boolean;
   joinQueue: () => void;
   lastResult: SubmissionResult | null;
   leaveQueue: () => void;
+  matchFound: boolean;
   matchStarted: boolean;
   sendReady: () => void;
   submit: (language: string, sourceCode: string) => void;
@@ -37,10 +39,15 @@ export function MatchProvider({ children }: { children: ReactNode }) {
   const [isQueued, setIsQueued] = useState(false);
   const [currentMatchId, setCurrentMatchId] = useState<string | null>(null);
   const [matchStarted, setMatchStarted] = useState(false);
+  const [matchFound, setMatchFound] = useState(false);
   const [lastResult, setLastResult] = useState<SubmissionResult | null>(null);
   const [winnerId, setWinnerId] = useState<string | null>(null);
   const [abandoned, setAbandoned] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const consumeMatchFound = useCallback(() => {
+    setMatchFound(false);
+  }, []);
 
   const ensureConnected = useCallback(() => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -69,6 +76,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         case "match_found":
           setIsQueued(false);
           setCurrentMatchId(msg.payload.matchId);
+          setMatchFound(true);
           setMatchStarted(false);
           setLastResult(null);
           setWinnerId(null);
@@ -128,6 +136,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         connected,
         isQueued,
         currentMatchId,
+        matchFound,
         matchStarted,
         lastResult,
         winnerId,
@@ -136,6 +145,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         joinQueue,
         leaveQueue,
         sendReady,
+        consumeMatchFound,
         submit,
       }}
     >
