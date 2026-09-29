@@ -7,7 +7,7 @@ export const login = async (): Promise<string> => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      email: "test@gmail.com",
+      email: "test123@gmail.com",
       password: "Test123!",
     }),
   });

@@ -1,7 +1,6 @@
 "use client";
 
-import { CircleUserRound, Search } from "lucide-react";
-import Link from "next/link";
+import {CircleUserRound, LogOut, Search} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -11,8 +10,15 @@ import { getActiveMatch } from "@/lib/api/matches";
 import { useAuth } from "@/providers/AuthProvider";
 import { useMatch } from "@/providers/MatchProvider";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 export default function Header() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { isQueued, currentMatchId, joinQueue, leaveQueue, sendReady } =
     useMatch();
 
@@ -51,6 +57,7 @@ export default function Header() {
       description: "This may take a moment",
       type: "loading",
       actionProps: { children: "Cancel", onClick: () => leaveQueue() },
+      onClose: () => leaveQueue()
     });
 
     return () => {
@@ -81,8 +88,37 @@ export default function Header() {
     }
   }, [currentMatchId, sendReady, router]);
 
-  const handleFindMatch = () => {
+  const handleFindMatch = async () => {
+    const matchData = await getActiveMatch();
+
+    if (matchData?.match) {
+
+      activeMatchToastIdRef.current = toast.add({
+        title: "You have an active match",
+        description: "You already have a match in progress.",
+        type: "loading",
+        actionProps: {
+          children: "Go to match",
+          onClick: () => {
+            toast.close(activeMatchToastIdRef.current?.toString());
+            activeMatchToastIdRef.current = null;
+            router.push(`/matches/${matchData.match.id}`);
+          },
+        },
+        onClose: () => {
+          activeMatchToastIdRef.current = null;
+        }
+      });
+
+      return;
+    }
+
     joinQueue();
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
   };
 
   return (
@@ -101,17 +137,31 @@ export default function Header() {
         {isQueued ? "Searching..." : "Find Match"}
       </button>
 
-      <Link
-        aria-label="Profile"
-        className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-zinc-100"
-        href="/dashboard"
-        type="button"
-      >
-        <CircleUserRound className="size-5 text-zinc-600" />
-        <span className="font-medium text-sm text-zinc-800">
-          {user?.username}
-        </span>
-      </Link>
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <button
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-zinc-100"
+              type="button"
+          >
+            <CircleUserRound className="size-5 text-zinc-600" />
+            <span className="font-medium text-sm text-zinc-800">
+        {user?.username}
+      </span>
+          </button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => router.push("/dashboard")}>
+            <CircleUserRound />
+            Dashboard
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={handleLogout}>
+            <LogOut />
+            Logout
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }
