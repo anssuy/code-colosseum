@@ -159,3 +159,7 @@ func (h *Handler) List(c *gin.Context) {
 		Offset:     query.Offset,
 	})
 }
+
+func (h *Handler) Submissions(c *gin.Context) {
+	
+}

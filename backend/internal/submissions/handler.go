@@ -133,3 +133,60 @@ func (h *Handler) Submit(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, SubmissionResponseFrom(submission))
 }
+
+func (h *Handler) List(c *gin.Context) {
+	matchID, ok := httpx.ParseUUIDParam(c, "id")
+	if !ok {
+		return
+	}
+
+	userIDString, ok := auth.GetAuthenticatedUserID(c)
+	if !ok {
+		httpx.WriteError(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	var userID pgtype.UUID
+	if err := userID.Scan(userIDString); err != nil {
+		httpx.WriteError(c, http.StatusUnauthorized, "invalid user")
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	dbMatch, err := h.queries.GetMatch(ctx, matchID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			httpx.WriteError(c, http.StatusNotFound, "match not found")
+			return
+		}
+		httpx.InternalError(c, "get match error", err, "could not load match")
+		return
+	}
+
+	if dbMatch.PlayerOneID != userID && dbMatch.PlayerTwoID != userID {
+		httpx.WriteError(c, http.StatusForbidden, "you are not part of this match")
+		return
+	}
+
+	dbSubmissions, err := h.queries.ListSubmissionsForMatch(ctx, matchID)
+	if err != nil {
+		httpx.InternalError(c, "list submissions error", err, "could not load submissions")
+		return
+	}
+
+	submissions := make([]SubmissionResponse, len(dbSubmissions))
+	for i, sb := range dbSubmissions {
+		submissions[i] = SubmissionResponse{
+			ID:          sb.ID,
+			ProblemID:   sb.ProblemID,
+			Language:    sb.Language,
+			Status:      sb.Status,
+			PassedTests: sb.PassedTests,
+			TotalTests:  sb.TotalTests,
+			CreatedAt:   sb.CreatedAt,
+		}
+	}
+
+	c.JSON(http.StatusOK, submissions)
+}
