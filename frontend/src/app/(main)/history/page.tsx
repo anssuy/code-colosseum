@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { getMatches, Match } from "@/lib/api/matches";
+import { getMatch, getMatches, Match } from "@/lib/api/matches";
 import { useAuth } from "@/providers/AuthProvider";
+import MatchHistoryCard from "./_components/MatchHistoryCard";
 
 export default function HistoryPage() {
   const { user } = useAuth();
@@ -25,57 +26,26 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      <h1 className="mb-4 font-semibold text-xl">Matches</h1>
+    <div className="mx-auto max-w-3xl p-6">
+      <div className="mb-6">
+        <h1 className="font-semibold text-2xl tracking-tight">Match history</h1>
+        <p className="mt-1 text-sm text-zinc-500">
+          Review your previous and active matches.
+        </p>
+      </div>
 
       {matches.length === 0 ? (
-        <div className="rounded-lg border border-zinc-200 p-6 text-center text-zinc-500">
-          No matches found.
+        <div className="rounded-xl border border-zinc-300 border-dashed p-10 text-center">
+          <p className="font-medium text-zinc-700">No matches yet</p>
+          <p className="mt-1 text-sm text-zinc-500">
+            Your matches will appear here.
+          </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
-          {matches.map((match) => {
-            const isPlayerOne = match.playerOneId === user?.id;
-            const opponentId = isPlayerOne
-              ? match.playerTwoId
-              : match.playerOneId;
-
-            const isWinner = match.winnerId === user?.id;
-            const isDraw = match.status === "finished" && !match.winnerId;
-
-            return (
-              <Link
-                className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition hover:bg-zinc-50"
-                href={`/matches/${match.id}`}
-                key={match.id}
-              >
-                <div>
-                  <div className="font-medium">vs {opponentId}</div>
-
-                  <div className="text-sm text-zinc-500">{match.status}</div>
-                </div>
-
-                <div className="font-medium text-sm">
-                  {match.status === "finished" &&
-                    (isWinner ? (
-                      <span className="text-green-600">Won</span>
-                    ) : isDraw ? (
-                      <span className="text-zinc-500">Draw</span>
-                    ) : (
-                      <span className="text-red-600">Lost</span>
-                    ))}
-
-                  {match.status === "active" && (
-                    <span className="text-blue-600">Active</span>
-                  )}
-
-                  {match.status === "abandoned" && (
-                    <span className="text-zinc-500">Abandoned</span>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
+        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+          {matches.map((match) => (
+            <MatchHistoryCard key={match.id} match={match} user={user} />
+          ))}
         </div>
       )}
     </div>

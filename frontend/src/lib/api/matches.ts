@@ -8,6 +8,11 @@ export type SubmissionResult = {
   userId: string;
 };
 
+export type SubmissionResponse = SubmissionResult & {
+  id: string;
+  language: string;
+};
+
 export type Match = {
   id: string;
   status: string;
@@ -40,3 +45,6 @@ export const getActiveMatch = () => apiFetch<MatchData>(`/matches/active`);
 
 export const getMatches = (limit = 20, offset = 0) =>
   apiFetch<MatchesResponse>(`/matches?limit=${limit}&offset=${offset}`);
+
+export const getSubmissions = (id: string) =>
+  apiFetch<SubmissionResponse[]>(`/matches/${id}/submissions`);

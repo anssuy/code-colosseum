@@ -123,6 +123,7 @@ func main() {
 		matchRoutes.GET("", auth.Middleware(tokenManager), matchHandler.List)
 		matchRoutes.GET("/active", auth.Middleware(tokenManager), matchHandler.GetActive)
 		matchRoutes.GET("/:id", auth.Middleware(tokenManager), matchHandler.Get)
+		matchRoutes.GET("/:id/submissions", auth.Middleware(tokenManager), submissionHandler.List)
 	}
 
 	leaderboardHandler := leaderboard.NewHandler(queries)
